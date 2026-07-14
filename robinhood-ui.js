@@ -912,27 +912,44 @@ document.addEventListener('DOMContentLoaded', () => {
     const savedAvatar = localStorage.getItem('robinhood_avatar');
     if (savedAvatar) {
         selectedAvatar = savedAvatar.includes('/') ? savedAvatar.split('/').pop()?.replace('ava.png', '') || 'icons/01icon.png' : savedAvatar;
-        document.getElementById('robin-avatar').src = savedAvatar;
-        document.getElementById('profile-avatar-small').src = savedAvatar;
+        const robinAvatar = document.getElementById('robin-avatar');
+        const profileAvatar = document.getElementById('profile-avatar-small');
+        if (robinAvatar) robinAvatar.src = savedAvatar;
+        if (profileAvatar) profileAvatar.src = savedAvatar;
     }
     
     applyBackground(currentBgIndex);
     
-    document.getElementById('send-btn').addEventListener('click', sendMessage);
-    document.getElementById('msg-input').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            sendMessage();
-        }
-    });
+    const sendBtn = document.getElementById('send-btn');
+    if (sendBtn) sendBtn.addEventListener('click', sendMessage);
     
-    document.getElementById('btn-voice-input').addEventListener('click', toggleVoiceRecording);
-    document.getElementById('btn-self-destruct').addEventListener('click', toggleSelfDestruct);
-    document.getElementById('btn-avatar').addEventListener('click', toggleAvatarSelector);
-    document.getElementById('btn-settings').addEventListener('click', toggleSettings);
-    document.getElementById('btn-game').addEventListener('click', toggleGame);
+    const msgInput = document.getElementById('msg-input');
+    if (msgInput) {
+        msgInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+    }
     
-    document.getElementById('overlay').addEventListener('click', closeSheets);
+    const voiceBtn = document.getElementById('btn-voice-input');
+    if (voiceBtn) voiceBtn.addEventListener('click', toggleVoiceRecording);
+    
+    const destructBtn = document.getElementById('btn-self-destruct');
+    if (destructBtn) destructBtn.addEventListener('click', toggleSelfDestruct);
+    
+    const avatarBtn = document.getElementById('btn-avatar');
+    if (avatarBtn) avatarBtn.addEventListener('click', toggleAvatarSelector);
+    
+    const settingsBtn = document.getElementById('btn-settings');
+    if (settingsBtn) settingsBtn.addEventListener('click', toggleSettings);
+    
+    const gameBtn = document.getElementById('btn-game');
+    if (gameBtn) gameBtn.addEventListener('click', toggleGame);
+    
+    const overlay = document.getElementById('overlay');
+    if (overlay) overlay.addEventListener('click', closeSheets);
     
     initUI();
     P2PPong.init();
@@ -941,6 +958,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function sendMessage() {
     const input = document.getElementById('msg-input');
+    if (!input) return;
     const text = input.value.trim();
     if (!text || !activeChannelId) return;
     
@@ -960,6 +978,7 @@ function sendMessage() {
 function toggleSelfDestruct() {
     selfDestructMode = !selfDestructMode;
     const btn = document.getElementById('btn-self-destruct');
+    if (!btn) return;
     if (selfDestructMode) {
         btn.style.background = 'rgba(244,67,54,0.3)';
         startSelfDestruct();
@@ -974,6 +993,7 @@ function toggleSelfDestruct() {
 function toggleAvatarSelector() {
     const sheet = document.getElementById('avatar-selector');
     const overlay = document.getElementById('overlay');
+    if (!sheet || !overlay) return;
     const isOpen = sheet.classList.contains('show');
     closeSheets();
     if (!isOpen) {
@@ -985,6 +1005,7 @@ function toggleAvatarSelector() {
 function toggleSettings() {
     const sheet = document.getElementById('settings-sheet');
     const overlay = document.getElementById('overlay');
+    if (!sheet || !overlay) return;
     const isOpen = sheet.classList.contains('open');
     closeSheets();
     if (!isOpen) {
@@ -992,7 +1013,6 @@ function toggleSettings() {
         overlay.classList.add('show');
     }
 }
-
 function toggleGame() {
     if (window.gameInstance) {
         if (window.gameInstance.isRunning) {
