@@ -8,9 +8,9 @@
     <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/png" href="assets/icons/01icon.png">
     <script src="lottie.min.js"></script>
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com; style-src 'self' 'unsafe-inline';font-src 'self' data:; media-src 'self' blob: data:; connect-src 'self' https://robincall.stephanclaps-491.workers.dev https://p2ppong-v2.onrender.com https://robinhood-server.vercel.app https://*.firebaseio.com https://*.firebasedatabase.app wss://*.firebaseio.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://www.gstatic.com blob:; img-src 'self' data: blob:; frame-src 'self'; manifest-src 'self'; form-action 'none'; base-uri 'self';">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline';font-src 'self' data:; media-src 'self' blob: data:; connect-src 'self' https://robincall.stephanclaps-491.workers.dev https://p2ppong-v2.onrender.com https://robinhood-server.vercel.app https://*.firebaseio.com https://*.firebasedatabase.app wss://*.firebaseio.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://www.gstatic.com blob:; img-src 'self' data: blob:; frame-src 'self'; manifest-src 'self'; form-action 'none'; base-uri 'self';">
     <style>
-        /* ===== Стили мессенджера (ваши существующие) ===== */
+        /* ===== Стили мессенджера ===== */
         :root, [data-theme="slate"] { 
             --bg-primary: #1a1a2a; --bg-primary-rgb: 26, 26, 42;
             --bg-secondary: #0d0d1a; --bg-secondary-rgb: 13, 13, 26;
@@ -413,6 +413,8 @@
         window.firebaseOnValue = onValue;
         window.firebaseOff = off;
         window.firebaseServerTimestamp = serverTimestamp;
+        
+        console.log('🔥 Firebase initialized');
     </script>
     
     <script src="crypto-worker.js"></script>
