@@ -770,20 +770,54 @@ class Game {
 // ============================================================
 
 let gameInstance = null;
+let p2pInitAttempts = 0;
+const MAX_P2P_ATTEMPTS = 20;
 
 function initGame() {
-    if (gameInstance) return;
-    if (!window.P2PPong) {
-        console.warn('🏹 P2PPong не инициализирован, ждем...');
-        setTimeout(initGame, 1000);
+    if (gameInstance) {
+        console.log('🏹 Game already initialized');
         return;
     }
     
-    gameInstance = new Game(window.P2PPong);
-    console.log('🏹 Game module initialized');
+    // Проверяем наличие P2PPong
+    if (typeof window.P2PPong === 'undefined' || !window.P2PPong._state) {
+        p2pInitAttempts++;
+        if (p2pInitAttempts < MAX_P2P_ATTEMPTS) {
+            console.log(`🏹 P2PPong не инициализирован, попытка ${p2pInitAttempts}...`);
+            setTimeout(initGame, 500);
+        } else {
+            console.error('🏹 P2PPong не инициализирован после ' + MAX_P2P_ATTEMPTS + ' попыток');
+        }
+        return;
+    }
+    
+    // Проверяем состояние P2PPong
+    if (window.P2PPong._state === 'idle' || window.P2PPong._state === 'connecting') {
+        console.log('🏹 P2PPong в состоянии ' + window.P2PPong._state + ', ждем готовности...');
+        // Подписываемся на событие ready
+        window.P2PPong.on('ready', () => {
+            console.log('🏹 P2PPong готов, инициализируем игру');
+            
+    createGameInstance();
 }
 
-// Автозапуск
+function createGameInstance() {
+    if (gameInstance) return;
+    try {
+        gameInstance = new Game(window.P2PPong);
+        console.log('🏹 Game instance created successfully');
+        window.gameInstance = gameInstance;
+    } catch(e) {
+        console.error('🏹 Error creating game instance:', e);
+    }
+}
+
+// Экспортируем для использования
+window.Game = Game;
+window.gameInstance = gameInstance;
+window.initGame = initGame;
+
+// Запускаем инициализацию после загрузки страницы
 if (document.readyState === 'complete' || document.readyState === 'interactive') {
     setTimeout(initGame, 1000);
 } else {
