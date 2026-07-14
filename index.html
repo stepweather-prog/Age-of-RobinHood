@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#1a2a1a">
+    <title>Age of RobinHood RPG</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" href="assets/icons/01icon.png">
+    <script src="lottie.min.js"></script>
+    <style>
+        :root {
+            --bg-primary: #1a2a1a; --bg-primary-rgb: 26, 42, 26;
+            --bg-secondary: #0d1a0d; --bg-secondary-rgb: 13, 26, 13;
+            --accent: #c4a040; --accent-rgb: 196, 160, 64;
+            --accent-light: #e0c060; --accent-light-rgb: 224, 192, 96;
+            --text: #d8e0c8; --text-bright: #f0e8d0; --text-dim: #889870;
+            --border: #c4a040;
+            --btn-bg: rgba(196,160,64,0.1); --btn-border: rgba(196,160,64,0.3);
+            --danger: #c44040; --seeding-color: #4caf50;
+            --robin-accent: #e0c060;
+            --overlay-bg: rgba(0,0,0,0.6);
+        }
+        * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+        html { touch-action: manipulation; }
+        html,body { height:100%; overflow:hidden; font-family:'Segoe UI','Inter',sans-serif; font-size:clamp(14px,2.5vw,16px); }
+        body { background:linear-gradient(135deg, #1a2a1a, #0d1a0d); color:var(--text); display:flex; flex-direction:column; height:100dvh; position:relative; }
+        
+        .header {
+            background: rgba(26, 42, 26, 0.65);
+            backdrop-filter: blur(24px) saturate(180%);
+            -webkit-backdrop-filter: blur(24px) saturate(180%);
+            border-bottom: 1px solid rgba(196, 160, 64, 0.3);
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
+            z-index:10; padding:6px 8px; display:flex; flex-direction:column; gap:4px; flex-shrink:0;
+        }
+        .header-row-1{display:flex;align-items:center;gap:6px}
+        .header-title-text{font-size:clamp(1em,3vw,1.3em);font-weight:bold;background:linear-gradient(135deg,var(--accent-light),var(--accent));-webkit-background-clip:text;background-clip:text;color:transparent}
+        
+        .resource-bar {
+            background: rgba(13, 26, 13, 0.7);
+            border-radius: 14px; padding: 8px 14px;
+            display: flex; align-items: center; gap: 12px; width: 100%;
+            border: 1px solid rgba(196, 160, 64, 0.4);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25), 0 0 14px rgba(196, 160, 64, 0.15);
+        }
+        .resource-item { display:flex; align-items:center; gap:4px; font-size:0.8em; color:var(--text-bright); }
+        .resource-item img { width:20px; height:20px; object-fit:contain; }
+        
+        .battle-area {
+            flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+            position:relative; z-index:1; padding:10px; gap:10px;
+        }
+        
+        .enemy-container {
+            position:relative; text-align:center; cursor:pointer;
+            transition: transform 0.05s; user-select:none; -webkit-user-select:none;
+        }
+        .enemy-container:active { transform: scale(0.95); }
+        .enemy-image {
+            width: min(200px, 50vw); height: min(200px, 50vw);
+            border-radius: 50%; object-fit: cover;
+            border: 3px solid var(--accent);
+            box-shadow: 0 0 30px rgba(196, 160, 64, 0.3);
+            animation: enemyFloat 2s ease-in-out infinite;
+            pointer-events: none;
+        }
+        @keyframes enemyFloat {
+            0%,100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .hp-bar-outer {
+            width: min(250px, 70vw); height: 16px;
+            background: rgba(0,0,0,0.5); border-radius: 8px;
+            border: 1px solid rgba(196, 160, 64, 0.3);
+            overflow: hidden; margin-top: 8px;
+        }
+        .hp-bar-inner {
+            height: 100%; background: linear-gradient(90deg, #c44040, #c4a040);
+            border-radius: 8px; transition: width 0.3s ease;
+        }
+        
+        .enemy-name { font-size:0.9em; color:var(--accent-light); margin-top:4px; }
+        .enemy-level { font-size:0.7em; color:var(--text-dim); }
+        
+        .damage-number {
+            position: absolute; top: -30px; left: 50%; transform: translateX(-50%);
+            font-size: 1.5em; font-weight: bold; color: #ffcc00;
+            pointer-events: none; animation: dmgFloat 1s ease-out forwards;
+            text-shadow: 0 0 10px rgba(255,200,0,0.5);
+        }
+        @keyframes dmgFloat {
+            0% { opacity:1; transform: translateX(-50%) translateY(0); }
+            100% { opacity:0; transform: translateX(-50%) translateY(-40px); }
+        }
+        
+        .bottom-panel {
+            background: rgba(26, 42, 26, 0.85);
+            border-top: 1px solid rgba(196, 160, 64, 0.2);
+            padding:8px; display:flex; gap:6px; align-items:center; z-index:1; flex-shrink:0;
+        }
+        
+        .skill-btn {
+            width: 48px; height: 48px; border-radius: 50%;
+            border: 2px solid rgba(196, 160, 64, 0.45);
+            background: rgba(196, 160, 64, 0.2);
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s ease; position: relative;
+            box-shadow: 0 0 14px rgba(196, 160, 64, 0.15);
+        }
+        .skill-btn:active { transform: scale(0.9); }
+        .skill-btn img { width: 60%; height: 60%; object-fit: contain; }
+        .skill-btn .cd-overlay {
+            position: absolute; bottom: -4px; left: 50%; transform: translateX(-50%);
+            font-size: 0.65em; color: #ffcc00; background: rgba(0,0,0,0.7);
+            padding: 0 4px; border-radius: 4px; display: none;
+        }
+        .skill-btn.on-cd { opacity: 0.5; pointer-events: none; }
+        
+        .hero-info {
+            display:flex; flex-direction:column; align-items:center; gap:2px;
+        }
+        .hero-name { font-size:0.8em; color:var(--accent-light); font-weight:bold; }
+        .hero-lvl { font-size:0.6em; color:var(--text-dim); }
+        
+        .gold-gain {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+            font-size: 1em; font-weight: bold; color: #ffcc00;
+            pointer-events: none; animation: goldFloat 1.5s ease-out forwards;
+            text-shadow: 0 0 8px rgba(255,200,0,0.5); z-index:5;
+        }
+        @keyframes goldFloat {
+            0% { opacity:1; transform: translate(-50%,-50%) translateY(0); }
+            100% { opacity:0; transform: translate(-50%,-50%) translateY(-60px); }
+        }
+        
+        .modal-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);z-index:300;justify-content:center;align-items:center}
+        .modal-overlay.active{display:flex}
+        .modal-dialog {
+            background: rgba(26, 42, 26, 0.92);
+            padding: 20px; border-radius: 20px; width: 85%; max-width: 380px; text-align: center;
+            border: 1px solid rgba(196, 160, 64, 0.3);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+            color: var(--text); max-height: 80vh; overflow-y: auto;
+        }
+        .modal-dialog h3{color:var(--accent-light);margin-bottom:12px}
+        .modal-dialog button{width:100%;padding:12px;margin-top:8px;border:none;border-radius:10px;font-weight:bold;cursor:pointer;transition:all 0.15s;background:linear-gradient(135deg,var(--accent),#8a6a20);color:#1a1f0f}
+        .modal-dialog button:active{transform:scale(0.95)}
+        .modal-dialog button.btn-dark{background:#3a2a1a;color:#eee}
+        
+        .hidden{display:none!important}
+    </style>
+</head>
+<body>
+<div id="app-container" style="display:flex;flex-direction:column;height:100%;">
+
+<div class="header">
+    <div class="header-row-1"><span class="header-title-text">Age of RobinHood RPG</span><span>🏹</span></div>
+    <div class="resource-bar">
+        <div class="resource-item">🪙 <span id="gold-display">0</span></div>
+        <div class="resource-item">💎 <span id="gem-display">0</span></div>
+        <div class="resource-item">⚔️ Ур. <span id="hero-lvl-display">1</span></div>
+        <div class="resource-item">🗡 Волна <span id="wave-display">1</span></div>
+    </div>
+</div>
+
+<div class="battle-area" id="battle-area">
+    <div class="enemy-container" id="enemy-container">
+        <img class="enemy-image" id="enemy-image" src="assets/icons/05icon.png" alt="enemy">
+        <div class="hp-bar-outer"><div class="hp-bar-inner" id="hp-bar" style="width:100%;"></div></div>
+        <div class="enemy-name" id="enemy-name">Стражник</div>
+        <div class="enemy-level" id="enemy-level">Ур. 1</div>
+    </div>
+    <div id="damage-numbers"></div>
+</div>
+
+<div class="bottom-panel">
+    <div class="hero-info">
+        <div class="hero-name" id="hero-name">Робин Гуд</div>
+        <div class="hero-lvl">Герой</div>
+    </div>
+    <div style="flex:1;"></div>
+    <div class="skill-btn" id="skill-1"><span>💥</span><span class="cd-overlay" id="cd-1"></span></div>
+    <div class="skill-btn" id="skill-2"><span>⚡</span><span class="cd-overlay" id="cd-2"></span></div>
+    <div class="skill-btn" id="skill-3"><span>🛡</span><span class="cd-overlay" id="cd-3"></span></div>
+    <button class="skill-btn" id="btn-upgrade" style="background:rgba(196,160,64,0.3);">📈</button>
+</div>
+
+</div>
+
+<div class="modal-overlay" id="upgrade-modal">
+    <div class="modal-dialog">
+        <h3>🏹 Прокачка</h3>
+        <div id="upgrade-list"></div>
+        <button id="close-upgrade-modal">Закрыть</button>
+    </div>
+</div>
+
+<script src="game.js"></script>
+</body>
+</html>
