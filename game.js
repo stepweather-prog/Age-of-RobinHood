@@ -774,73 +774,38 @@ let p2pInitAttempts = 0;
 const MAX_P2P_ATTEMPTS = 20;
 
 function initGame() {
-    if (gameInstance) {
-        console.log('🏹 Game already initialized');
-        return;
-    }
+    if (gameInstance) return;
     
-    // Проверяем наличие P2PPong
     if (typeof window.P2PPong === 'undefined' || !window.P2PPong._state) {
         p2pInitAttempts++;
         if (p2pInitAttempts < MAX_P2P_ATTEMPTS) {
-            console.log(`🏹 P2PPong не инициализирован, попытка ${p2pInitAttempts}...`);
             setTimeout(initGame, 500);
-        } else {
-            console.error('🏹 P2PPong не инициализирован после ' + MAX_P2P_ATTEMPTS + ' попыток');
         }
         return;
     }
     
-    // Проверяем состояние P2PPong
     if (window.P2PPong._state === 'idle' || window.P2PPong._state === 'connecting') {
-        console.log('🏹 P2PPong в состоянии ' + window.P2PPong._state + ', ждем готовности...');
-        // Подписываемся на событие ready
         window.P2PPong.on('ready', () => {
-            console.log('🏹 P2PPong готов, инициализируем игру');
-            
+            createGameInstance();
+        });
+        return;
+    }
+    
     createGameInstance();
-
+}
 
 function createGameInstance() {
     if (gameInstance) return;
     try {
         gameInstance = new Game(window.P2PPong);
-        console.log('🏹 Game instance created successfully');
         window.gameInstance = gameInstance;
     } catch(e) {
-        console.error('🏹 Error creating game instance:', e);
+        console.error('Game init error:', e);
     }
 }
 
-// Экспортируем для использования
 window.Game = Game;
 window.gameInstance = gameInstance;
 window.initGame = initGame;
 
-// Запускаем инициализацию после загрузки страницы
-if (document.readyState === 'complete' || document.readyState === 'interactive') {
-    setTimeout(initGame, 1000);
-} else {
-    document.addEventListener('DOMContentLoaded', () => setTimeout(initGame, 1000));
-}
-
-console.log('🏹 Game module loaded');
-upgrade(type) 
-        if (type === 'damage' && this.gold >= 50) {
-            this.gold -= 50;
-            this.damage += 5;
-        } else if (type === 'crit' && this.gold >= 30) {
-            this.gold -= 30;
-            this.critChance += 2;
-        } else if (type === 'auto' && this.gold >= 100) {
-            this.gold -= 100;
-            this.autoDamage += 3;
-        } else {
-            return;
-        }
-        this.updateUI();
-        this.openUpgrade();
-    }
-};
-
-game.init();
+setTimeout(initGame, 1000);
