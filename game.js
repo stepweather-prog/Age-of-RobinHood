@@ -327,49 +327,50 @@ class Game {
     }
 
     async initPhaser() {
-        const canvasContainer = document.getElementById('phaser-canvas');
-        if (!canvasContainer) return;
+    const canvasContainer = document.getElementById('phaser-canvas');
+    if (!canvasContainer) return;
 
-        if (this.phaser) {
-            this.phaser.destroy(true);
-            this.phaser = null;
-            this.sceneRef = null;
-        }
-
-        const rect = canvasContainer.getBoundingClientRect();
-        const width = rect.width || 400;
-        const height = rect.height || 400;
-
-        const self = this;
-
-        const gameScene = {
-            preload: function() {
-                this.load.image('bg', 'assets/icons/background.webp');
-                this.load.image('player', 'assets/icons/01icon.png');
-                this.load.image('enemy', 'assets/icons/08icon.png');
-            },
-            create: function() {
-                self.sceneRef = this;
-                self.createScene();
-            },
-            update: function() {
-                self.updateScene();
-            }
-        };
-
-        this.phaser = new Phaser.Game({
-            type: Phaser.AUTO,
-            parent: canvasContainer,
-            width: width,
-            height: height,
-            backgroundColor: '#1a1a2a',
-            scene: gameScene,
-            scale: {
-                mode: Phaser.Scale.RESIZE,
-                autoCenter: Phaser.Scale.CENTER_BOTH
-            }
-        });
+    if (this.phaser) {
+        this.phaser.destroy(true);
+        this.phaser = null;
+        this.sceneRef = null;
     }
+
+    const rect = canvasContainer.getBoundingClientRect();
+    const width = rect.width || 400;
+    const height = rect.height || 400;
+
+    const self = this;
+
+    const gameScene = {
+        preload: function() {
+            const base = window.location.origin;
+            this.load.image('bg', base + '/assets/icons/background.webp');
+            this.load.image('player', base + '/assets/icons/01icon.png');
+            this.load.image('enemy', base + '/assets/icons/08icon.png');
+        },
+        create: function() {
+            self.sceneRef = this;
+            self.createScene();
+        },
+        update: function() {
+            self.updateScene();
+        }
+    };
+
+    this.phaser = new Phaser.Game({
+        type: Phaser.AUTO,
+        parent: canvasContainer,
+        width: width,
+        height: height,
+        backgroundColor: '#1a1a2a',
+        scene: gameScene,
+        scale: {
+            mode: Phaser.Scale.RESIZE,
+            autoCenter: Phaser.Scale.CENTER_BOTH
+        }
+    });
+}
 
     createScene() {
         const scene = this.sceneRef;
