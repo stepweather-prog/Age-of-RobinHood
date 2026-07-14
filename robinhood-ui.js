@@ -807,5 +807,216 @@ function initUI() {
         grid.appendChild(btnDel);
         
         document.getElementById('btn-verify-reset').onclick = () => {
-            window._verifyInput = '';
-            document.getElementById('verify-code-display').textContent
+    window._verifyInput = '';
+    document.getElementById('verify-code-display').textContent = '_______';
+    document.getElementById('verify-error').style.display = 'none';
+};
+
+document.getElementById('btn-verify-confirm').onclick = () => {
+    if (window._verifyInput === window._verifyCode) {
+        document.getElementById('verify-modal').classList.remove('active');
+        verificationDone = true;
+        P2PPong.confirmVerification();
+        rMsg('✅ Код подтверждён! Канал открыт', 3000);
+    } else {
+        document.getElementById('verify-error').style.display = 'block';
+        document.getElementById('verify-error').textContent = 'Неверный код';
+        window._verifyInput = '';
+        document.getElementById('verify-code-display').textContent = '_______';
+    }
+};
+
+document.getElementById('verify-modal').classList.add('active');
+});
+
+function addVerifyDigit(d) {
+    if (window._verifyInput.length >= 7) return;
+    window._verifyInput += d;
+    document.getElementById('verify-code-display').textContent = window._verifyInput.padEnd(7, '_');
+    document.getElementById('verify-error').style.display = 'none';
+    
+    if (window._verifyInput.length === 7) {
+        setTimeout(() => {
+            document.getElementById('btn-verify-confirm').click();
+        }, 300);
+    }
+}
+
+P2PPong.on('channel-opened', (data) => {
+    const ch = P2PPong._channels[data.channelId];
+    if (ch) {
+        ch.nick = data.nick || 'Лучник';
+        ch.avatar = data.avatar || '001';
+    }
+    activeChannelId = data.channelId;
+    document.getElementById('robin-bar-sender').textContent = data.nick || 'Лучник';
+    document.getElementById('chat-box').innerHTML = '<div class="typing-indicator" id="typing-indicator"></div>';
+    rMsg('🏹 Канал открыт! Можно общаться', 3000);
+    playSound('open.mp3');
+});
+
+P2PPong.on('channel-destroyed', (data) => {
+    resetChatUI();
+    rMsg('💨 Канал уничтожен', 3000);
+});
+
+P2PPong.on('channel-expired', () => {
+    resetChatUI();
+    rMsg('⏳ Канал истек', 3000);
+});
+
+P2PPong.on('peer-id-generated', (data) => {
+    document.getElementById('my-peer-id').textContent = data.peerId || '_______';
+    document.getElementById('my-beacon-id').textContent = data.beaconId || '_______';
+    document.getElementById('beacon-code').textContent = data.code || '_______';
+});
+
+// ===== GAME INTEGRATION =====
+P2PPong.on('game-action', (data) => {
+    if (data.verified && window.gameInstance) {
+        window.gameInstance.handleGameAction(data);
+    }
+});
+
+P2PPong.on('game-started', () => {
+    if (window.gameInstance) window.gameInstance.start();
+});
+
+P2PPong.on('game-stopped', () => {
+    if (window.gameInstance) window.gameInstance.stop();
+});
+}
+
+function handleIncomingMessage(data) {
+    if (!data || !data.text) return;
+    
+    const sender = data.from === 'me' ? 'Вы' : (data.nick || 'Лучник');
+    const avatar = data.from === 'me' ? selectedAvatar : (data.avatar || '001');
+    
+    if (activeChannelId) {
+        appendMessage(sender, data.text, avatar, data.voiceData, data.type === 'voice' ? 'audio/webm' : null);
+    }
+    
+    if (data.type === 'voice') {
+        playSound('open.mp3');
+    }
+}
+
+// ===== EVENT LISTENERS =====
+document.addEventListener('DOMContentLoaded', () => {
+    loadAvatars();
+    
+    const savedTheme = localStorage.getItem('robinhood_theme');
+    if (savedTheme) applyTheme(savedTheme);
+    
+    const savedAvatar = localStorage.getItem('robinhood_avatar');
+    if (savedAvatar) {
+        selectedAvatar = savedAvatar.includes('/') ? savedAvatar.split('/').pop()?.replace('ava.png', '') || 'icons/01icon.png' : savedAvatar;
+        document.getElementById('robin-avatar').src = savedAvatar;
+        document.getElementById('profile-avatar-small').src = savedAvatar;
+    }
+    
+    applyBackground(currentBgIndex);
+    
+    document.getElementById('send-btn').addEventListener('click', sendMessage);
+    document.getElementById('msg-input').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
+        }
+    });
+    
+    document.getElementById('btn-voice-input').addEventListener('click', toggleVoiceRecording);
+    document.getElementById('btn-self-destruct').addEventListener('click', toggleSelfDestruct);
+    document.getElementById('btn-avatar').addEventListener('click', toggleAvatarSelector);
+    document.getElementById('btn-settings').addEventListener('click', toggleSettings);
+    document.getElementById('btn-game').addEventListener('click', toggleGame);
+    
+    document.getElementById('overlay').addEventListener('click', closeSheets);
+    
+    initUI();
+    P2PPong.init();
+    initGame();
+});
+
+function sendMessage() {
+    const input = document.getElementById('msg-input');
+    const text = input.value.trim();
+    if (!text || !activeChannelId) return;
+    
+    if (text.startsWith('!')) {
+        if (window.gameInstance && window.gameInstance.handleGameCommand(text)) {
+            input.value = '';
+            return;
+        }
+    }
+    
+    P2PPong.sendMessage(activeChannelId, text);
+    appendMessage('Вы', text, selectedAvatar);
+    input.value = '';
+    playSound('open.mp3');
+}
+
+function toggleSelfDestruct() {
+    selfDestructMode = !selfDestructMode;
+    const btn = document.getElementById('btn-self-destruct');
+    if (selfDestructMode) {
+        btn.style.background = 'rgba(244,67,54,0.3)';
+        startSelfDestruct();
+        rMsg('🔥 Самоуничтожение активировано', 3000);
+    } else {
+        btn.style.background = '';
+        stopSelfDestruct();
+        rMsg('🛡 Самоуничтожение отключено', 3000);
+    }
+}
+
+function toggleAvatarSelector() {
+    const sheet = document.getElementById('avatar-selector');
+    const overlay = document.getElementById('overlay');
+    const isOpen = sheet.classList.contains('show');
+    closeSheets();
+    if (!isOpen) {
+        sheet.classList.add('show');
+        overlay.classList.add('show');
+    }
+}
+
+function toggleSettings() {
+    const sheet = document.getElementById('settings-sheet');
+    const overlay = document.getElementById('overlay');
+    const isOpen = sheet.classList.contains('open');
+    closeSheets();
+    if (!isOpen) {
+        sheet.classList.add('open');
+        overlay.classList.add('show');
+    }
+}
+
+function toggleGame() {
+    if (window.gameInstance) {
+        if (window.gameInstance.isRunning) {
+            window.gameInstance.stop();
+        } else {
+            window.gameInstance.start();
+        }
+    }
+}
+
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    const installBtn = document.getElementById('install-btn');
+    if (installBtn) {
+        installBtn.style.display = 'block';
+        installBtn.addEventListener('click', () => {
+            deferredPrompt.prompt();
+            deferredPrompt.userChoice.then(() => {
+                deferredPrompt = null;
+                installBtn.style.display = 'none';
+            });
+        });
+    }
+});
+
+console.log('🏹 RobinHood UI loaded');
