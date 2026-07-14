@@ -4,6 +4,24 @@
 
 class GamePlayer {
     constructor() {
+        this.load();
+    }
+
+    load() {
+        const saved = localStorage.getItem('robinhood_player');
+        if (saved) {
+            try {
+                const data = JSON.parse(saved);
+                Object.assign(this, data);
+            } catch(e) {
+                this.setDefaults();
+            }
+        } else {
+            this.setDefaults();
+        }
+    }
+
+    setDefaults() {
         this.hp = 100;
         this.maxHp = 100;
         this.attack = 10;
@@ -12,14 +30,23 @@ class GamePlayer {
         this.level = 1;
         this.experience = 0;
         this.inventory = [];
+        this.save();
+    }
+
+    save() {
+        try {
+            localStorage.setItem('robinhood_player', JSON.stringify(this));
+        } catch(e) {}
     }
 
     heal(amount) {
         this.hp = Math.min(this.maxHp, this.hp + amount);
+        this.save();
     }
 
     addGold(amount) {
         this.gold += amount;
+        this.save();
     }
 
     addExperience(amount) {
@@ -27,47 +54,32 @@ class GamePlayer {
         const needed = this.getExpForLevel();
         if (this.experience >= needed) {
             this.experience -= needed;
-            this.level++;
-            this.maxHp += 20;
-            this.hp = this.maxHp;
-            this.attack += 3;
-            this.defense += 2;
+            this.levelUp();
+            return true;
         }
+        this.save();
+        return false;
+    }
+
+    levelUp() {
+        this.level++;
+        this.maxHp += 20;
+        this.hp = this.maxHp;
+        this.attack += 3;
+        this.defense += 2;
+        this.save();
     }
 
     getExpForLevel() {
         return this.level * 50;
     }
 
-    save() {
-        try {
-            localStorage.setItem('robinhood_player', JSON.stringify({
-                hp: this.hp,
-                maxHp: this.maxHp,
-                attack: this.attack,
-                defense: this.defense,
-                gold: this.gold,
-                level: this.level,
-                experience: this.experience,
-                inventory: this.inventory
-            }));
-        } catch(e) {}
-    }
-
-    load() {
-        try {
-            const data = JSON.parse(localStorage.getItem('robinhood_player'));
-            if (data) {
-                this.hp = data.hp || 100;
-                this.maxHp = data.maxHp || 100;
-                this.attack = data.attack || 10;
-                this.defense = data.defense || 5;
-                this.gold = data.gold || 50;
-                this.level = data.level || 1;
-                this.experience = data.experience || 0;
-                this.inventory = data.inventory || [];
-            }
-        } catch(e) {}
+    takeDamage(damage) {
+        const actualDamage = Math.max(1, damage - this.defense);
+        this.hp -= actualDamage;
+        if (this.hp < 0) this.hp = 0;
+        this.save();
+        return actualDamage;
     }
 }
 
@@ -77,9 +89,10 @@ class GameBattle {
         this.enemyHp = 100;
         this.enemyMaxHp = 100;
         this.enemyLevel = 1;
+        this.enemyName = 'Разбойник';
     }
 
-    attack(target) {
+    attack() {
         const damage = Math.floor(Math.random() * 15) + 5;
         this.enemyHp = Math.max(0, this.enemyHp - damage);
         return { damage, enemyHp: this.enemyHp };
@@ -89,6 +102,8 @@ class GameBattle {
         this.enemyLevel = Math.floor(Math.random() * 3) + 1;
         this.enemyMaxHp = 80 + this.enemyLevel * 30;
         this.enemyHp = this.enemyMaxHp;
+        const names = ['Разбойник', 'Гоблин', 'Волк', 'Скелет', 'Тролль', 'Бандит'];
+        this.enemyName = names[Math.floor(Math.random() * names.length)];
     }
 }
 
@@ -96,20 +111,48 @@ class GameBlackMarket {
     constructor(p2p) {
         this.p2p = p2p;
         this.listings = [];
+        this.myListings = [];
+
+        this.p2p.on('game-action', (data) => {
+            if (data.action === 'market-listing') {
+                this.addListing(data.data);
+            }
+        });
     }
 
     listItem(item, price) {
-        this.listings.push({ id: Date.now(), item, price, seller: this.p2p._peerId });
+        const listing = {
+            id: Date.now() + Math.random(),
+            item: item,
+            price: price,
+            seller: this.p2p._myNick,
+            sellerId: this.p2p._peerId,
+            timestamp: Date.now()
+        };
+        this.myListings.push(listing);
+        this.p2p.sendGameAction(this.p2p._chId, 'market-listing', listing);
+        return listing;
+    }
+
+    addListing(data) {
+        if (!this.listings.find(l => l.id === data.id)) {
+            this.listings.push(data);
+            this.p2p._emit('market-update', this.listings);
+        }
     }
 
     buyItem(listingId) {
-        const idx = this.listings.findIndex(l => l.id === listingId);
-        if (idx >= 0) {
-            const listing = this.listings[idx];
-            this.listings.splice(idx, 1);
-            return listing;
-        }
-        return null;
+        const listing = this.listings.find(l => l.id === listingId);
+        if (!listing) return false;
+        this.p2p.sendGameAction(this.p2p._chId, 'market-buy', {
+            listingId: listingId,
+            buyer: this.p2p._myNick
+        });
+        return true;
+    }
+
+    getListings() {
+        return this.listings;
     }
 }
 
@@ -211,6 +254,10 @@ class Game {
                 this.updateArenaDisplay();
                 this.showMessage(`⚔️ Атака! Урон: ${result.damage}. HP врага: ${result.enemyHp}/${this.battle.enemyMaxHp}`);
                 if (result.enemyHp <= 0) this.onBattleWin();
+                this.p2p.sendGameAction(this.p2p._chId, 'attack', {
+                    damage: result.damage,
+                    targetHp: result.enemyHp
+                });
                 return true;
 
             case 'статус':
@@ -247,13 +294,13 @@ class Game {
 
         if (this.gameContainer) this.gameContainer.style.display = 'flex';
         this.player.load();
+        this.battle.resetEnemy();
         this.updateStats();
 
         await this.initPhaser();
         this.renderScene('arena');
 
         this.startSync();
-
         this.p2p._emit('game-started', { player: this.player });
 
         const gameBtn = document.getElementById('btn-game');
@@ -295,6 +342,7 @@ class Game {
             height: height,
             backgroundColor: '#1a1a2a',
             scene: {
+                preload: () => this.preloadAssets(),
                 create: () => this.createScene(),
                 update: () => this.updateScene()
             },
@@ -305,34 +353,56 @@ class Game {
         });
     }
 
+    preloadAssets() {
+        this.phaser.load.image('bg', 'assets/icons/background.webp');
+        this.phaser.load.image('player', 'assets/icons/01icon.png');
+        this.phaser.load.image('enemy', 'assets/icons/08icon.png');
+    }
+
     createScene() {
         const { width, height } = this.phaser.scale;
+
+        const bg = this.phaser.add.image(width / 2, height / 2, 'bg');
+        bg.setDisplaySize(width, height);
+        bg.setAlpha(0.3);
 
         this.statusText = this.phaser.add.text(width / 2, 30, '⚔️ Арена', {
             fontSize: '22px',
             fill: '#a0b0e0',
             fontFamily: 'monospace'
-        }).setOrigin(0.5);
+        }).setOrigin(0.5).setDepth(10);
 
-        this.playerRect = this.phaser.add.rectangle(width * 0.3, height * 0.5, 60, 60, 0x4caf50);
-        this.enemyRect = this.phaser.add.rectangle(width * 0.7, height * 0.5, 60, 60, 0xf44336);
-        this.enemyRect.setInteractive();
-        this.enemyRect.on('pointerdown', () => this.onAttackClick());
+        this.playerSprite = this.phaser.add.image(width * 0.3, height * 0.5, 'player');
+        this.playerSprite.setDisplaySize(80, 80);
+        this.playerSprite.setDepth(5);
 
-        this.attackBtn = this.phaser.add.text(width / 2, height * 0.8, '⚔️ АТАКА', {
+        this.enemySprite = this.phaser.add.image(width * 0.7, height * 0.5, 'enemy');
+        this.enemySprite.setDisplaySize(80, 80);
+        this.enemySprite.setInteractive();
+        this.enemySprite.on('pointerdown', () => this.onAttackClick());
+        this.enemySprite.setDepth(5);
+
+        this.playerHpBar = this.phaser.add.graphics().setDepth(10);
+        this.enemyHpBar = this.phaser.add.graphics().setDepth(10);
+
+        this.attackBtn = this.phaser.add.text(width / 2, height * 0.82, '⚔️ АТАКА', {
             fontSize: '20px',
             fill: '#fff',
             backgroundColor: '#6b7db3',
-            padding: { x: 20, y: 10 }
-        }).setOrigin(0.5).setInteractive();
+            padding: { x: 24, y: 12 },
+            fontFamily: 'monospace'
+        }).setOrigin(0.5).setInteractive().setDepth(10);
         this.attackBtn.on('pointerdown', () => this.onAttackClick());
 
-        this.messageText = this.phaser.add.text(width / 2, height * 0.15, '', {
+        this.messageText = this.phaser.add.text(width / 2, height * 0.12, '', {
             fontSize: '16px',
-            fill: '#a0b0e0',
-            fontFamily: 'monospace'
-        }).setOrigin(0.5);
+            fill: '#ffcc00',
+            fontFamily: 'monospace',
+            stroke: '#000',
+            strokeThickness: 2
+        }).setOrigin(0.5).setDepth(10);
 
+        this.updateArenaDisplay();
         this.sceneReady = true;
     }
 
@@ -343,18 +413,36 @@ class Game {
     onAttackClick() {
         if (!this.isRunning) return;
 
-        const damage = Math.floor(Math.random() * 15) + 5;
-        this.battle.enemyHp = Math.max(0, this.battle.enemyHp - damage);
+        const result = this.battle.attack();
 
-        if (this.enemyRect) {
-            this.enemyRect.setFillStyle(0xff0000);
-            setTimeout(() => this.enemyRect.setFillStyle(0xf44336), 200);
+        if (this.enemySprite) {
+            this.enemySprite.setTint(0xff0000);
+            this.phaser.tweens.add({
+                targets: this.enemySprite,
+                x: this.enemySprite.x + 10,
+                duration: 50,
+                yoyo: true,
+                onComplete: () => this.enemySprite.clearTint()
+            });
         }
 
-        this.showMessage(`-${damage} HP врага!`);
+        if (this.playerSprite) {
+            this.phaser.tweens.add({
+                targets: this.playerSprite,
+                x: this.playerSprite.x + 30,
+                duration: 100,
+                yoyo: true
+            });
+        }
 
-        if (this.battle.enemyHp <= 0) {
-            this.battle.enemyHp = 0;
+        this.showMessage(`⚔️ -${result.damage} HP!`);
+
+        this.p2p.sendGameAction(this.p2p._chId, 'attack', {
+            damage: result.damage,
+            targetHp: result.enemyHp
+        });
+
+        if (result.enemyHp <= 0) {
             this.onBattleWin();
         }
 
@@ -373,11 +461,35 @@ class Game {
         this.showMessage(`🏆 Победа! +${gold}💰 +${exp}⭐`);
         this.battle.resetEnemy();
         this.updateArenaDisplay();
+
+        this.p2p.sendGameAction(this.p2p._chId, 'victory', {
+            winner: this.p2p._peerId,
+            gold: gold,
+            exp: exp
+        });
     }
 
     updateArenaDisplay() {
-        const hpText = `❤️ ${this.player.hp}/${this.player.maxHp}  VS  ❤️ ${this.battle.enemyHp}/${this.battle.enemyMaxHp}`;
-        if (this.statusText) this.statusText.setText(hpText);
+        if (!this.phaser) return;
+        const { width, height } = this.phaser.scale;
+
+        this.playerHpBar.clear();
+        this.playerHpBar.fillStyle(0x333333);
+        this.playerHpBar.fillRect(width * 0.08, height * 0.28, 130, 12);
+        const playerPercent = Math.max(0, this.player.hp / this.player.maxHp);
+        this.playerHpBar.fillStyle(playerPercent > 0.5 ? 0x4caf50 : 0xff9800);
+        this.playerHpBar.fillRect(width * 0.08, height * 0.28, 130 * playerPercent, 12);
+
+        this.enemyHpBar.clear();
+        this.enemyHpBar.fillStyle(0x333333);
+        this.enemyHpBar.fillRect(width * 0.52, height * 0.28, 130, 12);
+        const enemyPercent = Math.max(0, this.battle.enemyHp / this.battle.enemyMaxHp);
+        this.enemyHpBar.fillStyle(enemyPercent > 0.5 ? 0x4caf50 : 0xf44336);
+        this.enemyHpBar.fillRect(width * 0.52, height * 0.28, 130 * enemyPercent, 12);
+
+        if (this.statusText) {
+            this.statusText.setText(`${this.p2p._myNick}  VS  ${this.battle.enemyName}`);
+        }
     }
 
     switchScene(sceneName) {
@@ -403,12 +515,14 @@ class Game {
         if (this.messageText) {
             this.messageText.setText(text);
             this.messageText.setAlpha(1);
-            this.phaser.tweens.add({
-                targets: this.messageText,
-                alpha: 0,
-                delay: 2000,
-                duration: 500
-            });
+            if (this.phaser) {
+                this.phaser.tweens.add({
+                    targets: this.messageText,
+                    alpha: 0,
+                    delay: 2000,
+                    duration: 500
+                });
+            }
         }
     }
 
@@ -442,9 +556,10 @@ class Game {
             case 'attack':
                 this.battle.enemyHp = data.data.targetHp || this.battle.enemyHp;
                 this.updateArenaDisplay();
+                this.showMessage(`⚔️ ${data.nick || 'Враг'} атакует! Урон: ${data.data.damage}`);
                 break;
             case 'victory':
-                this.showMessage(`🏆 ${data.nick || 'Игрок'} одержал победу!`);
+                this.showMessage(`🏆 ${data.nick || 'Игрок'} победил врага!`);
                 break;
             case 'state-sync':
                 break;
