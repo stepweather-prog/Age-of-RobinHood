@@ -7,9 +7,7 @@ Sherwood.Quests = {
     _quests: {},
     _activeQuest: null,
     
-    // ===== ОПРЕДЕЛЕНИЯ КВЕСТОВ =====
     _definitions: {
-        // Глава 1: Пробуждение леса
         chapter1_intro: {
             id: 'chapter1_intro',
             chapter: 1,
@@ -52,7 +50,6 @@ Sherwood.Quests = {
             requiredLevel: 1
         },
         
-        // Глава 2: Болотные твари
         chapter2_swamp: {
             id: 'chapter2_swamp',
             chapter: 2,
@@ -87,7 +84,6 @@ Sherwood.Quests = {
             requiredLevel: 3
         },
         
-        // Глава 3: Глубокий лес
         chapter3_deep_forest: {
             id: 'chapter3_deep_forest',
             chapter: 3,
@@ -122,7 +118,6 @@ Sherwood.Quests = {
             requiredLevel: 6
         },
         
-        // Глава 4: Дороги Шервуда
         chapter4_roads: {
             id: 'chapter4_roads',
             chapter: 4,
@@ -157,7 +152,6 @@ Sherwood.Quests = {
             requiredLevel: 10
         },
         
-        // Глава 5: Замок шерифа
         chapter5_castle: {
             id: 'chapter5_castle',
             chapter: 5,
@@ -194,7 +188,6 @@ Sherwood.Quests = {
             isFinalChapter: true
         },
         
-        // Ежедневные задания
         daily_patrol: {
             id: 'daily_patrol',
             type: 'daily',
@@ -215,22 +208,18 @@ Sherwood.Quests = {
         }
     },
     
-    // ===== ИНИЦИАЛИЗАЦИЯ =====
     init() {
         const player = Sherwood.getPlayer();
         if (!player) return;
         
-        // Восстанавливаем прогресс
         this._quests = player.questProgress || {};
         
-        // Слушаем убийства монстров
         Sherwood.on('BATTLE_VICTORY', (data) => {
             if (data.monster) {
                 this._onMonsterKilled(data.monster);
             }
         });
         
-        // Слушаем получение предметов
         Sherwood.on('ITEM_ACQUIRED', (data) => {
             this._checkCollectQuests();
         });
@@ -240,9 +229,6 @@ Sherwood.Quests = {
         });
     },
     
-    // ===== ПОЛУЧЕНИЕ КВЕСТОВ =====
-    
-    // Получить все доступные главы
     getAvailableChapters() {
         const player = Sherwood.getPlayer();
         const chapters = [];
@@ -262,12 +248,10 @@ Sherwood.Quests = {
         return chapters.sort((a, b) => a.chapter - b.chapter);
     },
     
-    // Получить активный квест
     getActiveQuest() {
         return this._activeQuest;
     },
     
-    // Начать главу
     startChapter(chapterId) {
         const def = this._definitions[chapterId];
         if (!def) return null;
@@ -275,7 +259,6 @@ Sherwood.Quests = {
         const player = Sherwood.getPlayer();
         if (player.level < def.requiredLevel) return null;
         
-        // Инициализируем прогресс
         if (!this._quests[chapterId]) {
             this._quests[chapterId] = {
                 started: true,
@@ -285,7 +268,6 @@ Sherwood.Quests = {
             };
         }
         
-        // Инициализируем задания
         def.tasks.forEach(task => {
             if (!this._quests[chapterId].tasks[task.id]) {
                 this._quests[chapterId].tasks[task.id] = {
@@ -301,8 +283,6 @@ Sherwood.Quests = {
         return this._activeQuest;
     },
     
-    // ===== ПРОГРЕСС КВЕСТОВ =====
-    
     _onMonsterKilled(monsterData) {
         const monsterId = monsterData.monsterId || 
             Object.keys(Sherwood.Monsters).find(k => 
@@ -311,7 +291,6 @@ Sherwood.Quests = {
         
         if (!monsterId) return;
         
-        // Обновляем все активные квесты
         Object.keys(this._quests).forEach(questId => {
             const def = this._definitions[questId];
             if (!def) return;
@@ -385,7 +364,6 @@ Sherwood.Quests = {
     },
     
     _completeTask(questId, task) {
-        // Выдаём награду за задание
         if (task.reward) {
             if (task.reward.gold) Sherwood.addResource('gold', task.reward.gold);
             if (task.reward.silver) Sherwood.addResource('silver', task.reward.silver);
@@ -401,12 +379,10 @@ Sherwood.Quests = {
             }
         }
         
-        // Обновляем прогресс главы
         const def = this._definitions[questId];
         const state = this._quests[questId];
         state.tasksCompleted = Object.values(state.tasks).filter(t => t.completed).length;
         
-        // Проверяем завершение главы
         if (state.tasksCompleted >= def.tasks.length) {
             this._completeChapter(questId, def);
         }
@@ -421,7 +397,6 @@ Sherwood.Quests = {
         const state = this._quests[questId];
         state.completed = true;
         
-        // Выдаём награду за главу
         if (def.chapterReward) {
             if (def.chapterReward.gold) Sherwood.addResource('gold', def.chapterReward.gold);
             if (def.chapterReward.silver) Sherwood.addResource('silver', def.chapterReward.silver);
@@ -447,12 +422,11 @@ Sherwood.Quests = {
         });
     },
     
-    // ===== СОХРАНЕНИЕ =====
     _saveProgress() {
         const player = Sherwood.getPlayer();
         if (player) {
             player.questProgress = this._quests;
-            Sherwood._scheduleSave();
+            Sherwood.saveGame();
         }
     }
 };
