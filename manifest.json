@@ -1,16 +1,16 @@
 {
-  "name": "RobinHood P2P",
-  "short_name": "RobinHood",
-  "description": "Децентрализованный P2P-мессенджер с оконечным шифрованием",
-  "start_url": "/ROBINHOOD-P2P/",
-  "display": "standalone",
-  "background_color": "#1a1a2a",
-  "theme_color": "#1a1a2a",
-  "icons": [
-    {
-      "src": "assets/icons/01icon.png",
-      "sizes": "512x512",
-      "type": "image/png"
-    }
-  ]
+    "name": "RobinHood P2P - Шервудский лес",
+    "short_name": "Шервуд P2P",
+    "description": "P2P мессенджер с RPG игрой в стиле Шервудского леса",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#1a2a1a",
+    "theme_color": "#1a2a1a",
+    "icons": [
+        {
+            "src": "assets/icons/01icon.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        }
+    ]
 }
