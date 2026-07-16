@@ -561,76 +561,88 @@ Sherwood.UI = {
     },
     
     _renderDungeon() {
-        const d = Sherwood.Dungeon.getDungeon();
-        if (!d) { this.showDungeon(); return; }
-        
-        let gridHtml = '';
-        for (let y = 0; y < d.size; y++) {
-            gridHtml += '<div style="display:flex;justify-content:center;gap:3px;margin-bottom:3px;">';
-            for (let x = 0; x < d.size; x++) {
-                const tile = d.grid[y][x];
-                const isPlayer = d.playerPos.x === x && d.playerPos.y === y;
-                const explored = tile.explored;
-                let emoji = '⬛', bg = 'rgba(0,0,0,0.6)';
-                if (explored || isPlayer) {
-                    bg = 'rgba(255,255,255,0.08)';
-                    switch(tile.type) {
-                        case 'start': emoji='🏠'; break;
-                        case 'empty': emoji='🌿'; break;
-                        case 'monster': emoji=tile.monsterId?'💀':'👹'; break;
-                        case 'chest': emoji=tile.looted?'📦':'🎁'; break;
-                        case 'trap': emoji=tile.triggered?'💢':'⚠️'; break;
-                        case 'heal': emoji=tile.used?'💚':'💊'; break;
-                        case 'exit': emoji='🚪'; break;
-                    }
-                }
-                if (isPlayer) { emoji='🏹'; bg='rgba(112,160,224,0.4)'; }
-                gridHtml += `<div style="width:42px;height:42px;background:${bg};border:1px solid rgba(255,255,255,0.15);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.2em;">${emoji}</div>`;
+    const d = Sherwood.Dungeon.getDungeon();
+    if (!d) { this.showDungeon(); return; }
+    
+    let gridHtml = '';
+    for (let y = 0; y < d.size; y++) {
+        gridHtml += '<div style="display:flex;justify-content:center;gap:2px;margin-bottom:2px;">';
+        for (let x = 0; x < d.size; x++) {
+            const tile = d.grid[y][x];
+            const isPlayer = d.playerPos.x === x && d.playerPos.y === y;
+            const explored = tile.explored;
+            
+            let imgSrc = tile.closedTile || 'assets/icons/Dungeon tiles1.jpeg';
+            
+            if (explored || isPlayer) {
+                imgSrc = tile.pathTile || 'assets/icons/Sherwood dungeon path1.jpeg';
+                
+                // Оверлей для контента
+                let overlay = '';
+                if (tile.type === 'chest' && !tile.looted) overlay = '🎁';
+                else if (tile.type === 'monster' && tile.monsterId) overlay = '💀';
+                else if (tile.type === 'monster' && !tile.monsterId) overlay = '👹';
+                else if (tile.type === 'trap' && !tile.triggered) overlay = '⚠️';
+                else if (tile.type === 'trap' && tile.triggered) overlay = '💢';
+                else if (tile.type === 'heal' && !tile.used) overlay = '💊';
+                else if (tile.type === 'heal' && tile.used) overlay = '💚';
+                else if (tile.type === 'exit') overlay = '🚪';
+                else if (tile.type === 'start') overlay = '🏠';
+                
+                imgSrc = `${imgSrc}?t=${tile.type}`; // Чтоб браузер не кешировал
             }
-            gridHtml += '</div>';
+            
+            const borderColor = isPlayer ? '#ffd700' : 'rgba(255,255,255,0.2)';
+            const boxShadow = isPlayer ? '0 0 12px rgba(255,215,0,0.6)' : 'none';
+            
+            gridHtml += `
+                <div style="width:50px;height:50px;position:relative;
+                            background-image:url('${imgSrc}');background-size:cover;background-position:center;
+                            border:2px solid ${borderColor};border-radius:6px;
+                            box-shadow:${boxShadow};">
+                    ${explored && tile.type !== 'empty' ? 
+                        `<span style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:1.2em;text-shadow:0 0 4px rgba(0,0,0,0.8);">${tile.type==='chest'&&tile.looted?'':tile.type==='monster'?tile.monsterId?'💀':'👹':tile.type==='trap'?tile.triggered?'💢':'⚠️':tile.type==='heal'?tile.used?'💚':'💊':tile.type==='exit'?'🚪':'🏠'}</span>`
+                    : ''}
+                    ${isPlayer ? '<span style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:1.4em;">🏹</span>' : ''}
+                </div>
+            `;
         }
-        
-        const player = Sherwood.getPlayer();
-        this._container.innerHTML = `
-            <div style="background:rgba(0,0,0,0.7);min-height:100%;padding:16px;max-width:500px;margin:0 auto;">
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-                    <button onclick="Sherwood.UI._leaveDungeon()" style="background:rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.2);color:#fff;padding:6px 12px;border-radius:8px;cursor:pointer;">← Выйти</button>
-                    <div style="text-align:center;color:#70a0e0;">🌲 Чащоба<div style="font-size:0.7em;color:#aaa;">${d.tilesExplored}/${d.totalTiles}</div></div>
-                    <div style="color:#4caf50;font-size:0.85em;">❤️${player.stats.hp}/${player.stats.maxHp}</div>
+        gridHtml += '</div>';
+    }
+    
+    const player = Sherwood.getPlayer();
+    const exploredPercent = (d.tilesExplored / d.totalTiles * 100).toFixed(0);
+    
+    this._container.innerHTML = `
+        <div style="background:rgba(0,0,0,0.7);min-height:100%;padding:16px;max-width:500px;margin:0 auto;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                <button onclick="Sherwood.UI._leaveDungeon()" style="background:rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.2);color:#fff;padding:6px 12px;border-radius:8px;cursor:pointer;">← Выйти</button>
+                <div style="text-align:center;color:#70a0e0;">
+                    🌲 Чащоба
+                    <div style="font-size:0.7em;color:#aaa;">${d.tilesExplored}/${d.totalTiles} (${exploredPercent}%)</div>
+                    <div style="background:rgba(255,255,255,0.1);border-radius:4px;height:4px;margin-top:2px;">
+                        <div style="background:#70a0e0;height:100%;width:${exploredPercent}%;border-radius:4px;"></div>
+                    </div>
                 </div>
-                ${gridHtml}
-                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:3px;max-width:160px;margin:10px auto;">
-                    <div></div><button onclick="Sherwood.UI._dungeonMove('up')" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:8px;padding:10px;cursor:pointer;">⬆️</button><div></div>
-                    <button onclick="Sherwood.UI._dungeonMove('left')" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:8px;padding:10px;cursor:pointer;">⬅️</button>
-                    <div style="text-align:center;color:#aaa;">🚶</div>
-                    <button onclick="Sherwood.UI._dungeonMove('right')" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:8px;padding:10px;cursor:pointer;">➡️</button>
-                    <div></div><button onclick="Sherwood.UI._dungeonMove('down')" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:8px;padding:10px;cursor:pointer;">⬇️</button><div></div>
+                <div style="text-align:right;">
+                    <div style="color:#4caf50;font-size:0.85em;">❤️${player.stats.hp}</div>
+                    <div style="font-size:0.65em;color:#aaa;">🗡️${d.monstersKilled} 🎁${d.chestsOpened}</div>
                 </div>
-                <div id="dungeon-log" style="text-align:center;font-size:0.75em;color:#aaa;min-height:18px;margin-top:6px;"></div>
             </div>
-        `;
-    },
-    
-    _dungeonMove(dir) {
-        const result = Sherwood.Dungeon.movePlayer(dir);
-        if (!result) return;
-        const log = document.getElementById('dungeon-log');
-        if (!result.success && result.reason==='edge') { if(log)log.textContent='🚫 Край'; return; }
-        
-        switch(result.type) {
-            case 'monster': if(log)log.textContent='⚔️ Монстр!'; this._renderDungeon(); const b = Sherwood.Dungeon.fightMonster(result.tile); if(b) setTimeout(()=>this._renderBattle(),300); break;
-            case 'chest': this._playSound('chest_open'); if(log){const g=result.reward?.gold||0;const s=result.reward?.silver||0;log.textContent=`🎁 +${g}🪙 +${s}⚪${result.item?' | Предмет!':''}`;} this._renderDungeon(); break;
-            case 'trap': this._playSound('trap_trigger'); if(log)log.textContent=`⚠️ -${result.damage} HP`; this._renderDungeon(); break;
-            case 'heal': if(log)log.textContent=`💚 +${result.healAmount} HP`; this._renderDungeon(); break;
-            case 'exit': if(log)log.textContent='🏆 Пройдено!'; this._renderDungeon(); setTimeout(()=>{this._playMusic('forest_ambient');this.showDungeon();},1500); break;
-            case 'empty': if(log)log.textContent=''; this._renderDungeon(); break;
-        }
-        
-        const p = Sherwood.getPlayer();
-        if (p.stats.hp<=0) { if(log)log.textContent='💀 Сознание потеряно...'; setTimeout(()=>{Sherwood.Dungeon.leaveDungeon();p.stats.hp=Math.floor(p.stats.maxHp/3);this._playMusic('forest_ambient');this.showDungeon();},1500); }
-    },
-    
-    _leaveDungeon() { if(confirm('Выйти? Прогресс потеряется.')){Sherwood.Dungeon.leaveDungeon();this._playMusic('forest_ambient');this.showDungeon();} },
+            
+            <div style="margin:10px 0;">${gridHtml}</div>
+            
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:3px;max-width:160px;margin:10px auto;">
+                <div></div><button onclick="Sherwood.UI._dungeonMove('up')" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:8px;padding:10px;cursor:pointer;">⬆️</button><div></div>
+                <button onclick="Sherwood.UI._dungeonMove('left')" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:8px;padding:10px;cursor:pointer;">⬅️</button>
+                <div style="text-align:center;color:#aaa;">🚶${d.steps}</div>
+                <button onclick="Sherwood.UI._dungeonMove('right')" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:8px;padding:10px;cursor:pointer;">➡️</button>
+                <div></div><button onclick="Sherwood.UI._dungeonMove('down')" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;border-radius:8px;padding:10px;cursor:pointer;">⬇️</button><div></div>
+            </div>
+            <div id="dungeon-log" style="text-align:center;font-size:0.75em;color:#aaa;min-height:18px;margin-top:4px;"></div>
+        </div>
+    `;
+},
     
     // ===== ОСТАЛЬНЫЕ ЭКРАНЫ =====
     showArena() { this._placeholder('🎯 Турнир лучников','PvP Арена в разработке.'); },
