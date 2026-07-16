@@ -413,17 +413,27 @@
 <script src="js/sherwood/models.js"></script>
 <script src="js/sherwood/data/monsters.js"></script>
 <script src="js/sherwood/data/equipment.js"></script>
+<script src="js/sherwood/router.js"></script>
 <script src="js/sherwood/combat.js"></script>
-<script src="js/sherwood/ui.js"></script>
 <script src="js/sherwood/quests.js"></script>
 <script src="js/sherwood/dungeon.js"></script>
+<script src="js/sherwood/arena.js"></script>
+<script src="js/sherwood/tavern.js"></script>
+<script src="js/sherwood/blackmarket.js"></script>
+<script src="js/sherwood/events.js"></script>
+<script src="js/sherwood/ui.js"></script>
 <script>
 // Инициализация игры после загрузки P2P
 P2PPong.on('ready', () => {
     Sherwood.init().then(() => {
         Sherwood.UI.init();
+        Sherwood.Router.navigate('main_menu');
         Sherwood.Quests.init();
         Sherwood.Dungeon.init();
+        Sherwood.Arena.init();
+        Sherwood.Tavern.init();
+        Sherwood.BlackMarket.init();
+        Sherwood.Events.init();
         console.log('🏹 Шервудский лес готов!');
     });
 });
