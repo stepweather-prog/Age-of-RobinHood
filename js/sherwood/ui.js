@@ -828,9 +828,13 @@ Sherwood.UI = {
                 const battle = Sherwood.Dungeon.fightMonster(result.tile);
                 if (battle) setTimeout(() => this._renderBattle(), 300);
                 break;
-            case 'chest':
+                 case 'chest':
                 this._playSound('chest_open');
-                if (log) log.textContent = `🎁 Сундук: 🪙+${result.reward.gold} ⚪+${result.reward.silver}${result.item ? ' | Предмет!' : ''}`;
+                if (log) {
+                    const gold = result.reward?.gold || 0;
+                    const silver = result.reward?.silver || 0;
+                    log.textContent = `🎁 Сундук: 🪙+${gold} ⚪+${silver}${result.item ? ' | Предмет!' : ''}`;
+                }
                 this._renderDungeon();
                 break;
             case 'trap':
