@@ -36,19 +36,20 @@ Sherwood.UI = {
         }
         
         setTimeout(() => this._addGameButton(), 500);
-        
-        Sherwood.on('BATTLE_VICTORY', (data) => this._onBattleVictory(data));
-        Sherwood.on('BATTLE_DEFEAT', (data) => this._onBattleDefeat(data));
-        Sherwood.on('PLAYER_LEVEL_UP', (data) => this._onLevelUp(data));
-        Sherwood.on('QUEST_TASK_COMPLETED', (data) => this._onQuestTaskCompleted(data));
-        Sherwood.on('QUEST_CHAPTER_COMPLETED', (data) => this._onChapterCompleted(data));
-        
-        // Загружаем звуки
-        this._initSounds();
-    },
     
-    _initSounds() {
-        // Предзагрузка звуков
+    // Привязываем кнопку и подпись Шервуда
+    const gameBtn = document.getElementById('btn-game');
+    const gameLabel = document.getElementById('label-game');
+    if (gameBtn) gameBtn.onclick = () => this.toggle();
+    if (gameLabel) gameLabel.onclick = () => this.toggle();
+    
+    Sherwood.on('BATTLE_VICTORY', (data) => this._onBattleVictory(data));
+    Sherwood.on('BATTLE_DEFEAT', (data) => this._onBattleDefeat(data));
+    Sherwood.on('PLAYER_LEVEL_UP', (data) => this._onLevelUp(data));
+    Sherwood.on('QUEST_TASK_COMPLETED', (data) => this._onQuestTaskCompleted(data));
+    Sherwood.on('QUEST_CHAPTER_COMPLETED', (data) => this._onChapterCompleted(data));
+    
+    // Загружаем звуки
         const sounds = {
             'shot': 'assets/sounds/shot.mp3',
             'arrow_hit': 'assets/sounds/arrow_hit.wav',
