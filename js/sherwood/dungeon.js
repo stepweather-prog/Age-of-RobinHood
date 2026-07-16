@@ -25,7 +25,6 @@ Sherwood.Dungeon = {
         const size = this._gridSize;
         const grid = [];
         
-        // ВСЕ клетки — закрытые
         for (let y = 0; y < size; y++) {
             grid[y] = [];
             for (let x = 0; x < size; x++) {
@@ -38,11 +37,9 @@ Sherwood.Dungeon = {
             }
         }
         
-        // Генерируем ТУННЕЛЬ (зигзаг от центра к краю)
         const tunnel = this._generateTunnel(size);
         const pathSet = new Set(tunnel.map(p => `${p.x},${p.y}`));
         
-        // Старт
         const start = tunnel[0];
         grid[start.y][start.x] = {
             type: 'start',
@@ -50,7 +47,6 @@ Sherwood.Dungeon = {
             pathTile: this._pathTiles[Math.floor(Math.random() * this._pathTiles.length)]
         };
         
-        // Выход
         const exit = tunnel[tunnel.length - 1];
         grid[exit.y][exit.x] = {
             type: 'exit',
@@ -59,20 +55,19 @@ Sherwood.Dungeon = {
             pathTile: this._pathTiles[Math.floor(Math.random() * this._pathTiles.length)]
         };
         
-        // Заполняем туннель
         for (let i = 1; i < tunnel.length - 1; i++) {
             const p = tunnel[i];
-            grid[p.y][p.x].type = 'tunnel';
+            grid[p.y][p.x].type = 'empty';
             grid[p.y][p.x].pathTile = this._pathTiles[Math.floor(Math.random() * this._pathTiles.length)];
         }
         
-        // Размещаем контент НА туннеле
+        // Контент по сложности
         const monsterCount = difficulty === 'hard' ? 5 : difficulty === 'easy' ? 3 : 4;
         const chestCount = 2;
         const healCount = 2;
         const trapCount = difficulty === 'hard' ? 4 : 2;
         
-        this._placeOnTunnel(grid, tunnel, 'monster', monsterCount);
+        this._placeOnTunnel(grid, tunnel, 'monster', monsterCount, difficulty);
         this._placeOnTunnel(grid, tunnel, 'chest', chestCount);
         this._placeOnTunnel(grid, tunnel, 'heal', healCount);
         this._placeOnTunnel(grid, tunnel, 'trap', trapCount);
@@ -87,11 +82,9 @@ Sherwood.Dungeon = {
             chestsOpened: 0,
             trapsTriggered: 0,
             hpHealed: 0,
-            status: 'active',
-            steps: 0
+            status: 'active'
         };
         
-        // Открываем соседние клетки от старта
         this._revealCell(start.x, start.y);
         
         return this._dungeon;
@@ -113,14 +106,9 @@ Sherwood.Dungeon = {
         
         while (cx !== end.x || cy !== end.y) {
             const goX = Math.random() < 0.55 && cx !== end.x;
-            
-            if (goX && cx !== end.x) {
-                cx += dx;
-            } else if (cy !== end.y) {
-                cy += dy;
-            } else if (cx !== end.x) {
-                cx += dx;
-            }
+            if (goX && cx !== end.x) { cx += dx; }
+            else if (cy !== end.y) { cy += dy; }
+            else if (cx !== end.x) { cx += dx; }
             
             cx = Math.max(0, Math.min(size - 1, cx));
             cy = Math.max(0, Math.min(size - 1, cy));
@@ -130,22 +118,17 @@ Sherwood.Dungeon = {
             }
         }
         
-        // Тупики (ответвления)
         const deadEnds = Math.floor(Math.random() * 3) + 1;
         for (let i = 0; i < deadEnds; i++) {
             const bp = tunnel[Math.floor(Math.random() * (tunnel.length - 2)) + 1];
             const dir = Math.random() < 0.5 ? 'x' : 'y';
             const len = 1 + Math.floor(Math.random() * 2);
-            
             for (let j = 1; j <= len; j++) {
                 const bx = dir === 'x' ? bp.x + j : bp.x;
                 const by = dir === 'y' ? bp.y + j : bp.y;
-                
                 if (bx >= 0 && bx < size && by >= 0 && by < size) {
                     const last = tunnel[tunnel.length - 1];
-                    if (last.x !== bx || last.y !== by) {
-                        tunnel.push({x: bx, y: by});
-                    }
+                    if (last.x !== bx || last.y !== by) tunnel.push({x: bx, y: by});
                 }
             }
         }
@@ -153,9 +136,9 @@ Sherwood.Dungeon = {
         return tunnel;
     },
     
-    _placeOnTunnel(grid, tunnel, type, count) {
+    _placeOnTunnel(grid, tunnel, type, count, difficulty) {
         let placed = 0;
-        const available = tunnel.slice(1, -1).filter(p => grid[p.y][p.x].type === 'tunnel');
+        const available = tunnel.slice(1, -1).filter(p => grid[p.y][p.x].type === 'empty');
         
         while (placed < count && available.length > 0) {
             const idx = Math.floor(Math.random() * available.length);
@@ -164,7 +147,14 @@ Sherwood.Dungeon = {
             grid[p.y][p.x].type = type;
             grid[p.y][p.x].pathTile = this._pathTiles[Math.floor(Math.random() * this._pathTiles.length)];
             
-            if (type === 'chest') {
+            if (type === 'monster') {
+                // Определяем тир по сложности
+                const tier = difficulty === 'hard' ? 2 : 1;
+                const monster = this._getRandomMonster(tier);
+                grid[p.y][p.x].monsterId = monster.id;
+                grid[p.y][p.x].monsterIcon = monster.icon;
+                grid[p.y][p.x].monsterName = monster.name;
+            } else if (type === 'chest') {
                 grid[p.y][p.x].looted = false;
                 grid[p.y][p.x].reward = {
                     gold: 15 + Math.floor(Math.random() * 50),
@@ -182,30 +172,41 @@ Sherwood.Dungeon = {
         }
     },
     
+    _getRandomMonster(tier) {
+        // Только монстры для подземелья (не боссы)
+        const dungeonMonsters = Object.values(Sherwood.Monsters).filter(m => 
+            m.tier === tier && !m.isBoss && 
+            ['swamp', 'deep_forest', 'cave'].includes(m.location)
+        );
+        
+        if (dungeonMonsters.length === 0) {
+            return { id: 'forest_spider', name: 'Монстр', icon: '' };
+        }
+        
+        return dungeonMonsters[Math.floor(Math.random() * dungeonMonsters.length)];
+    },
+    
     moveToTile(x, y) {
         if (!this._dungeon || this._dungeon.status !== 'active') return null;
         
         const dx = Math.abs(x - this._dungeon.playerPos.x);
         const dy = Math.abs(y - this._dungeon.playerPos.y);
         
-        if (dx + dy !== 1) return { success: false, reason: 'too_far' };
+        if ((dx + dy) !== 1) return { success: false, reason: 'too_far' };
         
         const key = `${x},${y}`;
         if (!this._dungeon.pathSet.has(key)) return { success: false, reason: 'wall' };
         
         this._dungeon.playerPos = { x, y };
-        this._dungeon.steps++;
         const tile = this._dungeon.grid[y][x];
         
-        // Открываем туман вокруг
         this._revealCell(x, y);
         
-        return this._processTile(tile, {x, y});
+        return this._processTile(tile, x, y);
     },
     
     _revealCell(x, y) {
         const size = this._dungeon.size;
-        
         for (let dy = -1; dy <= 1; dy++) {
             for (let dx = -1; dx <= 1; dx++) {
                 const nx = x + dx, ny = y + dy;
@@ -220,20 +221,22 @@ Sherwood.Dungeon = {
         }
     },
     
-    _processTile(tile, pos) {
+    _processTile(tile, x, y) {
+        tile.explored = true;
+        
         switch (tile.type) {
-            case 'tunnel':
+            case 'empty':
             case 'start':
                 return { type: 'empty' };
                 
             case 'monster':
                 if (!tile.monsterId) {
-                    const monsters = this._getMonsters();
-                    const m = monsters[Math.floor(Math.random() * monsters.length)];
-                    tile.monsterId = m.id;
-                    tile.monsterStats = { ...m.stats };
+                    const monster = this._getRandomMonster(this._dungeon.difficulty === 'hard' ? 2 : 1);
+                    tile.monsterId = monster.id;
+                    tile.monsterIcon = monster.icon;
+                    tile.monsterName = monster.name;
                 }
-                return { type: 'monster', monsterId: tile.monsterId, tile };
+                return { type: 'monster', monsterId: tile.monsterId, monsterIcon: tile.monsterIcon, monsterName: tile.monsterName, tile };
                 
             case 'chest':
                 if (!tile.looted) {
@@ -241,15 +244,15 @@ Sherwood.Dungeon = {
                     this._dungeon.chestsOpened++;
                     Sherwood.addResource('gold', tile.reward.gold);
                     Sherwood.addResource('silver', tile.reward.silver);
+                    let item = null;
                     if (Math.random() < 0.25) {
-                        const items = Sherwood.EquipmentDB.findByGrade('common');
+                        const items = Sherwood.EquipmentDB.items.filter(i => i.grade === 'common');
                         if (items.length > 0) {
-                            const item = items[Math.floor(Math.random() * items.length)];
+                            item = items[Math.floor(Math.random() * items.length)];
                             Sherwood.getPlayer().inventory.push({...item});
-                            return { type: 'chest', reward: tile.reward, item };
                         }
                     }
-                    return { type: 'chest', reward: tile.reward };
+                    return { type: 'chest', reward: tile.reward, item };
                 }
                 return { type: 'chest', looted: true };
                 
@@ -284,28 +287,19 @@ Sherwood.Dungeon = {
         }
     },
     
-    _getMonsters() {
-        const all = Object.values(Sherwood.Monsters).filter(m => !m.isBoss);
-        const diff = this._dungeon.difficulty;
-        if (diff === 'easy') return all.filter(m => m.stats.hp <= 45);
-        if (diff === 'hard') return all.filter(m => m.stats.hp >= 60);
-        return all;
-    },
-    
     fightMonster(tile) {
         if (!tile.monsterId) return null;
         const battle = Sherwood.Combat.startPvE(tile.monsterId);
         if (battle) {
             battle.dungeonTile = tile;
-            const onEnd = (result) => {
-                if (result === 'victory') {
-                    this._dungeon.monstersKilled++;
-                    tile.type = 'tunnel';
-                    tile.monsterId = null;
-                }
-            };
-            Sherwood.once('BATTLE_VICTORY', () => onEnd('victory'));
-            Sherwood.once('BATTLE_DEFEAT', () => onEnd('defeat'));
+            Sherwood.once('BATTLE_VICTORY', () => {
+                this._dungeon.monstersKilled++;
+                tile.type = 'empty';
+                tile.monsterId = null;
+                tile.monsterIcon = null;
+                tile.monsterName = null;
+            });
+            Sherwood.once('BATTLE_DEFEAT', () => {});
         }
         return battle;
     },
@@ -315,13 +309,11 @@ Sherwood.Dungeon = {
         const exploredBonus = Math.floor(d.tilesExplored / d.tunnelLength * 150);
         const killBonus = d.monstersKilled * 30;
         const chestBonus = d.chestsOpened * 50;
-        
         const reward = {
             gold: exploredBonus + killBonus,
             silver: exploredBonus * 3 + chestBonus * 2,
             exp: exploredBonus + killBonus * 2
         };
-        
         Sherwood.addResource('gold', reward.gold);
         Sherwood.addResource('silver', reward.silver);
         Sherwood.addExp(reward.exp);
@@ -329,7 +321,6 @@ Sherwood.Dungeon = {
             Sherwood.addResource('trophies', 3);
             reward.trophies = 3;
         }
-        
         return reward;
     },
     
