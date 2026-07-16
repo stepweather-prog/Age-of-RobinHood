@@ -5,14 +5,12 @@
  */
 
 const Sherwood = {
-    // ===== DISPATCHER =====
     _listeners: {},
     _onceListeners: {},
     _state: null,
     _initialized: false,
     _saveTimer: null,
     
-    // Регистрация обработчиков действий
     on(actionType, callback) {
         if (!this._listeners[actionType]) this._listeners[actionType] = [];
         this._listeners[actionType].push(callback);
@@ -32,11 +30,9 @@ const Sherwood = {
         }
     },
     
-    // Диспатч действия (как в оригинальном Age of Revenge)
     dispatch(action) {
         const { type, payload } = action;
         
-        // Выполняем once-обработчики
         if (this._onceListeners[type]) {
             const callbacks = this._onceListeners[type];
             this._onceListeners[type] = [];
@@ -45,18 +41,15 @@ const Sherwood = {
             });
         }
         
-        // Выполняем обычные обработчики
         if (this._listeners[type]) {
             this._listeners[type].forEach(cb => {
                 try { cb(payload); } catch(e) { console.error('[Sherwood] handler error:', e); }
             });
         }
         
-        // Автосохранение с дебаунсом
         this._scheduleSave();
     },
     
-    // ===== PLAYER STATE =====
     getState() {
         return this._state;
     },
@@ -65,17 +58,14 @@ const Sherwood = {
         return this._state?.player;
     },
     
-    // ===== ИНИЦИАЛИЗАЦИЯ =====
     async init() {
         if (this._initialized) return;
         
-        // Загружаем профиль из localStorage
         const saved = this._loadProfile();
         
         if (saved) {
             this._state = saved;
         } else {
-            // Создаём нового персонажа
             this._state = this._createNewPlayer();
             this._saveProfile();
         }
@@ -116,8 +106,8 @@ const Sherwood = {
                 inventory: [],
                 bagSize: 20,
                 resources: {
-                    gold: 0,
-                    silver: 50,
+                    gold: 50,
+                    silver: 100,
                     trophies: 0
                 },
                 bestiary: {},
@@ -160,20 +150,15 @@ const Sherwood = {
         };
     },
     
-    // ===== ДЕЙСТВИЯ НАД ИГРОКОМ =====
-    
-    // Добавить опыт
     addExp(amount) {
         const player = this._state.player;
         player.exp += amount;
         
-        // Проверка на повышение уровня
         while (player.exp >= player.expToLevel) {
             player.exp -= player.expToLevel;
             player.level++;
             player.expToLevel = this._calcExpToLevel(player.level);
             
-            // Повышаем статы
             player.stats.attack += 3;
             player.stats.defense += 2;
             player.stats.hp += 15;
@@ -191,7 +176,6 @@ const Sherwood = {
         });
     },
     
-    // Добавить ресурсы
     addResource(type, amount) {
         const player = this._state.player;
         if (player.resources[type] !== undefined) {
@@ -203,17 +187,14 @@ const Sherwood = {
         }
     },
     
-    // Экипировать предмет
     equipItem(item) {
         const player = this._state.player;
         const part = item.part;
         
-        // Снимаем старый предмет
         if (player.equipment[part]) {
             this.unequipItem(part, false);
         }
         
-        // Надеваем новый
         player.equipment[part] = item;
         this._recalcStats();
         
@@ -223,13 +204,11 @@ const Sherwood = {
         });
     },
     
-    // Снять предмет
     unequipItem(part, dispatchEvent = true) {
         const player = this._state.player;
         const item = player.equipment[part];
         
         if (item) {
-            // Возвращаем в инвентарь
             if (player.inventory.length < player.bagSize) {
                 player.inventory.push(item);
             }
@@ -245,7 +224,6 @@ const Sherwood = {
         }
     },
     
-    // Обновить статы монстра в бестиарии
     updateBestiary(monsterId, killed = 1) {
         const player = this._state.player;
         if (!player.bestiary[monsterId]) {
@@ -253,7 +231,6 @@ const Sherwood = {
         }
         player.bestiary[monsterId].killed += killed;
         
-        // Проверяем бонусы бестиария
         this._checkBestiaryBonuses(monsterId);
         
         this.dispatch({ 
@@ -261,8 +238,6 @@ const Sherwood = {
             payload: { monsterId, killed: player.bestiary[monsterId].killed } 
         });
     },
-    
-    // ===== ВСПОМОГАТЕЛЬНЫЕ МЕТОДЫ =====
     
     _recalcStats() {
         const player = this._state.player;
@@ -275,7 +250,6 @@ const Sherwood = {
             dodgeChance: 3
         };
         
-        // Добавляем бонусы от экипировки
         Object.values(player.equipment).forEach(item => {
             if (item?.stats) {
                 Object.entries(item.stats).forEach(([stat, value]) => {
@@ -286,12 +260,10 @@ const Sherwood = {
             }
         });
         
-        // Добавляем бонусы тренировок
         baseStats.attack += player.trainingLevels.attack * 2;
         baseStats.defense += player.trainingLevels.defense * 2;
         baseStats.hp += player.trainingLevels.hp * 10;
         
-        // Добавляем бонусы бестиария
         Object.entries(player.bestiary).forEach(([monsterId, data]) => {
             const monster = this.Monsters?.[monsterId];
             if (monster?.bestiaryBonus && data.killed >= monster.bestiaryBonus.kills) {
@@ -329,7 +301,6 @@ const Sherwood = {
         return Math.floor(100 * Math.pow(1.15, level - 1));
     },
     
-    // ===== СОХРАНЕНИЕ =====
     _loadProfile() {
         try {
             const data = localStorage.getItem('sherwood_save');
@@ -355,11 +326,17 @@ const Sherwood = {
         this._saveTimer = setTimeout(() => this._saveProfile(), 1000);
     },
     
-    // ===== СБРОС =====
-    resetGame() {
-        this._state = this._createNewPlayer();
+    // Публичный метод для принудительного сохранения
+    saveGame() {
         this._saveProfile();
-        this.dispatch({ type: 'GAME_RESET', payload: null });
+    },
+    
+    resetGame() {
+        if (confirm('Сбросить весь прогресс? Это нельзя отменить!')) {
+            this._state = this._createNewPlayer();
+            this._saveProfile();
+            this.dispatch({ type: 'GAME_RESET', payload: null });
+        }
     },
     
     destroy() {
@@ -370,5 +347,4 @@ const Sherwood = {
     }
 };
 
-// Экспорт в глобальную область
 window.Sherwood = Sherwood;
