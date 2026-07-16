@@ -53,7 +53,13 @@ Sherwood.UI = {
         if(this._container.style.display==='none'||!this._container.style.display){this.show();}else{this.hide();}
     },
     
-    show() { this._container.style.display='block'; document.getElementById('app-container').style.display='none'; this._playMusic('forest_ambient'); this.showMainMenu(); },
+    show() {
+    if (!this._container) return;
+    this._container.style.display = 'block';
+    document.getElementById('app-container').style.display = 'none';
+    this._playMusic('forest_ambient');
+    this.showMainMenu();
+},
     hide() { this._container.style.display='none'; document.getElementById('app-container').style.display='flex'; this._stopMusic(); },
     
     showMainMenu() {
