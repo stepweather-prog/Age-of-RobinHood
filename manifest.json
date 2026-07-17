@@ -1,6 +1,8 @@
 {
-    "name": "RobinHood P2P - Шервудский лес",
-    "short_name": "Шервуд P2P",
+    "name": "Sherwood RPG",
+    "short_name": "Sherwood",
+    ...
+}
     "description": "P2P мессенджер с RPG игрой в стиле Шервудского леса",
     "start_url": "/",
     "display": "standalone",
