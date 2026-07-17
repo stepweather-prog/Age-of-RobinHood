@@ -8,6 +8,30 @@ function getAvatarUrl(avatarSrc) {
 Sherwood.UI = {
     _currentScreen: null, _container: null, _currentMusic: null, _currentMusicKey: null, _sounds: {}, _soundEnabled: true,
     
+    // Пути к фонам
+    _bg: {
+        main: 'assets/icons/bg_main.png',
+        tavern: 'assets/lor/Concept_art_of_an_empty_medieval_fantasy_outlaw_tavern_hidden_in_551664901.jpeg',
+        blackmarket: 'assets/lor/Concept_art_of_an_empty_medieval_fantasy_outlaw_black_market_sho_2924495327.jpeg',
+        profile: 'assets/lor/Concept_art_of_an_empty_ambient_medieval_rogues_armory_workshop__711067792.jpeg',
+        inventory: 'assets/lor/Concept_art_of_a_medieval_rogues_leather_inventory_bag_open_wide_3426009160.jpeg',
+        bestiary: 'assets/lor/Concept_art_of_an_empty_medieval_monster_hunters_study_desk_insi_4116191878.jpeg',
+        quests: 'assets/lor/Concept_art_of_a_medieval_fantasy_game_quest_log_user_interface__2570654912.jpeg',
+        training: 'assets/lor/Concept_art_of_an_empty_medieval_fantasy_game_attributes_upgrade_3888850448.jpeg',
+        skills: 'assets/lor/Concept_art_of_an_empty_medieval_fantasy_game_spellbook_menu_bac_2764741742.jpeg',
+        blacksmith: 'assets/lor/Concept_art_of_an_empty_medieval_fantasy_game_blacksmith_upgrade_1828056045.jpeg',
+        loading: 'assets/lor/Concept_art_of_a_dark_fantasy_video_game_loading_screen_backgrou_3972307865.jpeg',
+        dungeon: 'assets/icons/bg_dungeon.png',
+        battle: 'assets/icons/bg_battle.png',
+        dungeon_arena: 'assets/lor/Concept_art_of_an_empty_combat_arena_inside_a_dark_medieval_fant_1895741054.jpeg',
+        pvp_arena: 'assets/lor/Concept_art_of_an_empty_medieval_PvP_battle_arena_hidden_deep_un_1634296726.jpeg',
+        quest_arena: 'assets/lor/Concept_art_of_an_empty_mysterious_medieval_quest_battle_arena_h_155216645.jpeg',
+        world_boss: 'assets/lor/Concept_art_of_an_empty_apocalyptic_raid_battle_arena_hidden_dee_1709694810.jpeg',
+        raid: 'assets/lor/Concept_art_of_an_empty_apocalyptic_raid_battle_arena_hidden_dee_1709694810.jpeg',
+        victory: 'assets/lor/Concept_art_of_a_medieval_fantasy_game_victory_reward_popup_scre_3942935428.jpeg',
+        defeat: 'assets/lor/Concept_art_of_a_medieval_dark_fantasy_game_defeat_popup_screen__2497010453.jpeg'
+    },
+    
     init() {
         this._container = document.getElementById('sherwood-game');
         if (!this._container) {
@@ -38,13 +62,11 @@ Sherwood.UI = {
     },
     
     _playSound(key) { if(!this._soundEnabled)return; const s=this._sounds[key]; if(s){s.currentTime=0;s.volume=0.5;s.play().catch(()=>{});} },
-    
     _playMusic(key) {
         if(this._currentMusicKey===key&&this._currentMusic&&!this._currentMusic.paused)return;
         this._stopMusic();
         const m=this._sounds[key]; if(m){m.loop=true;m.volume=0.3;m.currentTime=0;m.play().catch(()=>{});this._currentMusic=m;this._currentMusicKey=key;}
     },
-    
     _stopMusic() { if(this._currentMusic){this._currentMusic.pause();this._currentMusic.currentTime=0;this._currentMusic=null;this._currentMusicKey=null;} },
     _addGameButton(){},
     
@@ -55,9 +77,7 @@ Sherwood.UI = {
     showMainMenu() {
         const p = Sherwood.getPlayer();
         if (!p) { this._container.innerHTML = '<div style="color:#fff;text-align:center;padding:40px;">Загрузка...</div>'; setTimeout(() => this.showMainMenu(), 500); return; }
-        
-        this._container.style.background = "url('assets/icons/bg_main.png') center/cover no-repeat";
-        
+        this._container.style.background = "url('" + this._bg.main + "') center/cover no-repeat";
         this._container.innerHTML = 
             '<div style="min-height:100%;background:linear-gradient(180deg,rgba(0,0,0,0.3),rgba(0,0,0,0.7));display:flex;flex-direction:column;align-items:center;padding:16px;">' +
             '<div style="width:100%;max-width:500px;display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">' +
@@ -84,7 +104,7 @@ Sherwood.UI = {
     
     showProfile() {
         const p=Sherwood.getPlayer(); if(!p)return;
-        this._container.style.background="url('assets/lor/Concept_art_of_an_empty_ambient_medieval_rogues_armory_workshop__711067792.jpeg') center/cover no-repeat";
+        this._container.style.background="url('"+this._bg.profile+"') center/cover no-repeat";
         const ep=Math.min(100,(p.exp/p.expToLevel*100)).toFixed(0);
         const parts=[{k:'head',n:'Голова',i:'🎩'},{k:'shoulders',n:'Плечи',i:'🧣'},{k:'torso',n:'Торс',i:'👕'},{k:'hands',n:'Руки',i:'🧤'},{k:'legs',n:'Ноги',i:'👖'},{k:'feet',n:'Ступни',i:'👢'},{k:'weapon1',n:'Оружие 1',i:'🏹'},{k:'weapon2',n:'Оружие 2',i:'🗡️'}];
         let eh=''; parts.forEach(pt=>{const it=p.equipment[pt.k];const gc=it?(Sherwood.Models?.GradeColors?.[it.grade]||'#9d9d9d'):'transparent';eh+=`<div style="background:rgba(0,0,0,0.7);border:1px solid rgba(255,255,255,0.15);border-left:3px solid ${gc};border-radius:10px;padding:12px;margin-bottom:6px;cursor:pointer;" onclick="Sherwood.UI._onEquipSlotClick('${pt.k}')"><div style="display:flex;align-items:center;gap:8px;"><span>${pt.i}</span><div style="flex:1;"><div style="font-size:0.75em;color:#aaa;">${pt.n}</div><div style="color:${it?'#fff':'#aaa'};">${it?it.name:'Пусто'}</div></div><span style="color:#aaa;">→</span></div></div>`;});
@@ -100,7 +120,7 @@ Sherwood.UI = {
     _onEquipItem(i){const p=Sherwood.getPlayer();const it=p.inventory[i];if(it){Sherwood.equipItem(it);p.inventory.splice(i,1);this.showProfile();}},
     
     showQuests() {
-        this._container.style.background="url('assets/lor/Concept_art_of_a_medieval_fantasy_game_quest_log_user_interface__2570654912.jpeg') center/cover no-repeat";
+        this._container.style.background="url('"+this._bg.quests+"') center/cover no-repeat";
         const chapters=Sherwood.Quests.getAvailableChapters();
         let ch=chapters.map(c=>{const pct=c.totalTasks>0?(c.tasksCompleted/c.totalTasks*100):0;return`<div onclick="Sherwood.UI._startQuest('${c.id}')" style="background:rgba(0,0,0,0.7);border:1px solid rgba(255,255,255,0.15);border-radius:10px;padding:12px;margin-bottom:8px;cursor:pointer;"><div style="display:flex;align-items:center;gap:8px;"><span style="font-size:1.5em;">📜</span><div style="flex:1;"><b style="color:#ffd700;">Гл.${c.chapter}: ${c.name}</b><div style="font-size:0.75em;color:#aaa;">${c.tasksCompleted}/${c.totalTasks}</div></div>${c.completed?'✅':'→'}</div>${!c.completed?`<div style="background:rgba(255,255,255,0.1);border-radius:4px;height:4px;margin-top:6px;"><div style="background:#ffd700;height:100%;width:${pct}%;border-radius:4px;"></div></div>`:''}</div>`;}).join('')||'<div style="color:#aaa;text-align:center;padding:20px;">Нет доступных глав.</div>';
         this._container.innerHTML=`<div style="min-height:100%;background:linear-gradient(180deg,rgba(0,0,0,0.4),rgba(0,0,0,0.7));padding:16px;max-width:500px;margin:0 auto;"><button onclick="Sherwood.UI.showMainMenu()" style="background:rgba(0,0,0,0.6);border:1px solid rgba(255,255,255,0.2);color:#fff;padding:6px 14px;border-radius:8px;cursor:pointer;margin-bottom:12px;">← Назад</button><h2 style="color:#ffd700;margin:0 0 12px;">⚔️ Вылазки</h2>${ch}<h3 style="color:#ffd700;margin:16px 0 8px;">⚡ Быстрый бой</h3><div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">${['swamp_ghoul_1|Болотный упырь','cursed_wolf_1|Проклятый волк','swamp_kikimora_1|Кикимора','devil_toad_1|Дьявольская жаба'].map(x=>{const[a,b]=x.split('|');const m=Sherwood.Monsters[a];return`<button onclick="Sherwood.UI.startBattle('${a}')" style="background:rgba(0,0,0,0.6);border:1px solid rgba(255,255,255,0.2);border-radius:10px;padding:12px;color:#fff;cursor:pointer;text-align:center;"><img src="${m?.icon||''}" style="width:50px;height:50px;object-fit:cover;border-radius:6px;" onerror="this.style.display='none'"><div style="font-size:0.8em;">${b}</div></button>`;}).join('')}</div></div>`;
@@ -108,7 +128,12 @@ Sherwood.UI = {
     
     _startQuest(qid){const q=Sherwood.Quests.startChapter(qid);if(!q)return;let th=q.tasks.map(t=>{const st=q.questState.tasks[t.id];const pct=st?(st.progress/t.target*100):0;const dn=st?.completed;return`<div style="background:rgba(0,0,0,0.6);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px;margin-bottom:6px;"><div style="display:flex;align-items:center;gap:6px;"><span>${dn?'✅':'⬜'}</span><span style="color:#fff;">${t.description}</span></div>${!dn?`<div style="font-size:0.7em;color:#aaa;">${st?.progress||0}/${t.target}</div><div style="background:rgba(255,255,255,0.1);border-radius:3px;height:3px;margin-top:4px;"><div style="background:#4caf50;height:100%;width:${pct}%;border-radius:3px;"></div></div>`:''}</div>`;}).join('');const dn=q.questState.completed;this._container.innerHTML=`<div style="min-height:100%;background:linear-gradient(180deg,rgba(0,0,0,0.6),rgba(0,0,0,0.9));padding:16px;max-width:500px;margin:0 auto;"><button onclick="Sherwood.UI.showQuests()" style="background:rgba(0,0,0,0.6);border:1px solid rgba(255,255,255,0.2);color:#fff;padding:6px 14px;border-radius:8px;cursor:pointer;margin-bottom:12px;">← Назад</button><h2 style="color:#ffd700;">Гл.${q.chapter}: ${q.name}</h2><p style="color:#aaa;">${q.description}</p>${th}${dn?`<div style="background:rgba(255,215,0,0.15);border:2px solid gold;border-radius:10px;padding:14px;text-align:center;margin-top:10px;"><div style="color:gold;font-size:1.1em;">🏆 Глава завершена!</div><div style="color:#fff;">🪙${q.chapterReward.gold||0} ⚪${q.chapterReward.silver||0} ✨${q.chapterReward.exp||0}XP</div></div>`:''}</div>`;},
     
-    startBattle(mid){const b=Sherwood.Combat.startPvE(mid);if(!b)return;this._playSound('shot');this._playMusic('dungeon_ambient');this._renderBattle();},
+    startBattle(mid, bgKey = 'battle') {
+        const b=Sherwood.Combat.startPvE(mid); if(!b)return;
+        this._playSound('shot'); this._playMusic('dungeon_ambient');
+        this._container.style.background = "url('" + (this._bg[bgKey] || this._bg.battle) + "') center/cover no-repeat";
+        this._renderBattle();
+    },
     
     _renderBattle(){
         const b=Sherwood.Combat.getBattle();if(!b)return;const e=b.monster;const p=b.player;const m=Sherwood.Monsters[b.monsterId];const eh=Math.max(0,(e.currentHp/e.stats.hp*100)).toFixed(0);const ph=Math.max(0,(p.currentHp/p.stats.hp*100)).toFixed(0);const sk=Sherwood.Combat._getPlayerSkills();let sh=Object.values(sk).map(s=>{const cd=b.cooldowns[s.id]>0;return`<button onclick="Sherwood.UI._onSkillClick('${s.id}')" style="flex:1;padding:10px;background:linear-gradient(135deg,#c9a040,#8b6914);border:none;border-radius:8px;color:#fff;font-weight:bold;cursor:pointer;${cd?'opacity:0.5':''}" ${cd?'disabled':''}>${s.name}${cd?' ('+b.cooldowns[s.id]+')':''}</button>`;}).join('');
@@ -125,10 +150,8 @@ Sherwood.UI = {
     _onAttackClick(){const b=Sherwood.Combat.getBattle();if(!b||b.turn!=='player')return;this._playSound('arrow_hit');const r=Sherwood.Combat.playerAttack();this._updateBattleUI();if(r){this._addBattleLog('🗡️','Вы нанесли '+r.damage+' урона!','#4caf50');if(r.crit)this._addBattleLog('💥','Крит!','#ff9800');}},
     _onSkillClick(sid){const r=Sherwood.Combat.playerUseSkill(sid);this._playSound('arrow_hit');this._updateBattleUI();if(r){const sk=Sherwood.Combat._getPlayerSkills();this._addBattleLog('🎯',sk[sid].name+': '+r.damage+' урона!','#ff9800');if(r.crit)this._addBattleLog('💥','Крит!','#ff9800');}},
     _fleeBattle(){if(Sherwood.Combat.flee()){this._playMusic('forest_ambient');this.showMainMenu();}else{this._addBattleLog('🏃','Не вышло!','#f44336');this._updateBattleUI();}},
-    
     _updateBattleUI(){const b=Sherwood.Combat.getBattle();if(!b){this._playMusic('forest_ambient');this.showMainMenu();return;}if(b.status==='active'){this._renderBattle();b.log.slice(-2).forEach(l=>{if(l.actor==='enemy'&&!l.displayed){l.displayed=true;this._addBattleLog('💢',b.monster.name+' нанёс '+l.damage+' урона!','#f44336');}});}},
     _addBattleLog(icon,text,color){const log=document.getElementById('battle-log');if(!log)return;const d=document.createElement('div');d.textContent=icon+' '+text;d.style.cssText=`color:${color};margin-bottom:3px;`;log.appendChild(d);log.scrollTop=log.scrollHeight;},
-    
     _onBattleVictory(){const b=Sherwood.Combat.getBattle();if(b?.dungeonTile){Sherwood.Combat.endBattle();this._playMusic('dungeon_ambient');this._renderDungeon();}else{this._playSound('victory');setTimeout(()=>{Sherwood.Combat.endBattle();this._playMusic('forest_ambient');this.showQuests();},300);}},
     _onBattleDefeat(){this._playSound('defeat');setTimeout(()=>{Sherwood.Combat.endBattle();const p=Sherwood.getPlayer();p.stats.hp=Math.floor(p.stats.maxHp/2);this._playMusic('forest_ambient');this.showMainMenu();},300);},
     
@@ -177,18 +200,12 @@ Sherwood.UI = {
         const p=Sherwood.getPlayer();if(p.stats.hp<=0){if(log)log.textContent='💀 Ранение...';setTimeout(()=>{Sherwood.Dungeon.leaveDungeon();p.stats.hp=Math.floor(p.stats.maxHp/3);this._playMusic('forest_ambient');this.showDungeon();},2000);}},
     _leaveDungeon(){if(confirm('Выйти? Прогресс потеряется.')){Sherwood.Dungeon.leaveDungeon();this._playMusic('forest_ambient');this.showDungeon();}},
     
-    showArena(){this._ph('🎯 Турнир лучников','PvP Арена в разработке.');},
-    showRaid(){this._container.style.background="url('assets/lor/Concept_art_of_an_empty_apocalyptic_raid_battle_arena_hidden_dee_1709694810.jpeg') center/cover no-repeat";const p=Sherwood.getPlayer();let bh='';['leshy_3|Древний леший','insatiable_triton_3|Древний тритон','devil_toad_3|Жаба-демон','cursed_stag_3|Вендиго','eldritch_essence_3|Пугающая сущность','sherwood_scavenger_3|Химера-мутант'].forEach(x=>{const[a,b]=x.split('|');const m=Sherwood.Monsters[a];if(m)bh+=`<button onclick="Sherwood.UI.startBattle('${a}')" style="width:100%;background:rgba(0,0,0,0.7);border:1px solid rgba(255,255,255,0.2);border-radius:10px;padding:14px;margin-bottom:8px;color:#fff;cursor:pointer;text-align:left;display:flex;align-items:center;gap:10px;"><img src="${m.icon}" style="width:50px;height:50px;object-fit:cover;border-radius:6px;" onerror="this.style.display='none'"><div><div>${b}</div><div style="font-size:0.7em;color:#aaa;">⚔️${m.stats.attack} 🛡️${m.stats.defense} ❤️${m.stats.hp}</div></div></button>`;});this._container.innerHTML=`<div style="min-height:100%;background:linear-gradient(180deg,rgba(0,0,0,0.5),rgba(0,0,0,0.8));padding:16px;max-width:500px;margin:0 auto;"><button onclick="Sherwood.UI.showMainMenu()" style="background:rgba(0,0,0,0.6);border:1px solid rgba(255,255,255,0.2);color:#fff;padding:6px 14px;border-radius:8px;cursor:pointer;margin-bottom:12px;">← Назад</button><h2 style="color:#f44336;">👹 Логово</h2><p style="color:#aaa;">Билеты: ${p.raid.tickets}/${p.raid.maxTickets}</p>${bh}</div>`;},
-    
-    showTavern(){this._playMusic('tavern_ambient');this._container.style.background="url('assets/lor/Concept_art_of_an_empty_medieval_fantasy_outlaw_tavern_hidden_in_551664901.jpeg') center/cover no-repeat";this._container.innerHTML=`<div style="min-height:100%;background:linear-gradient(180deg,rgba(0,0,0,0.4),rgba(0,0,0,0.7));padding:16px;max-width:500px;margin:0 auto;"><button onclick="Sherwood.UI.showMainMenu()" style="background:rgba(0,0,0,0.6);border:1px solid rgba(255,255,255,0.2);color:#fff;padding:6px 14px;border-radius:8px;cursor:pointer;margin-bottom:12px;">← Назад</button><h2 style="color:#e0c080;">🍺 Таверна «Весёлый Разбойник»</h2><p style="color:#aaa;">Ежедневные задания в разработке.</p></div>`;},
-    
+    showArena(){this._container.style.background="url('"+this._bg.pvp_arena+"') center/cover no-repeat";this._container.innerHTML=`<div style="min-height:100%;background:linear-gradient(180deg,rgba(0,0,0,0.5),rgba(0,0,0,0.8));padding:16px;max-width:500px;margin:0 auto;"><button onclick="Sherwood.UI.showMainMenu()" style="background:rgba(0,0,0,0.6);border:1px solid rgba(255,255,255,0.2);color:#fff;padding:6px 14px;border-radius:8px;cursor:pointer;margin-bottom:12px;">← Назад</button><h2 style="color:#e0c080;">🎯 Турнир лучников</h2><p style="color:#aaa;">PvP Арена в разработке.</p></div>`;},
+    showRaid(){this._container.style.background="url('"+this._bg.raid+"') center/cover no-repeat";const p=Sherwood.getPlayer();let bh='';['leshy_3|Древний леший','insatiable_triton_3|Древний тритон','devil_toad_3|Жаба-демон','cursed_stag_3|Вендиго','eldritch_essence_3|Пугающая сущность','sherwood_scavenger_3|Химера-мутант'].forEach(x=>{const[a,b]=x.split('|');const m=Sherwood.Monsters[a];if(m)bh+=`<button onclick="Sherwood.UI.startBattle('${a}','raid')" style="width:100%;background:rgba(0,0,0,0.7);border:1px solid rgba(255,255,255,0.2);border-radius:10px;padding:14px;margin-bottom:8px;color:#fff;cursor:pointer;text-align:left;display:flex;align-items:center;gap:10px;"><img src="${m.icon}" style="width:50px;height:50px;object-fit:cover;border-radius:6px;" onerror="this.style.display='none'"><div><div>${b}</div><div style="font-size:0.7em;color:#aaa;">⚔️${m.stats.attack} 🛡️${m.stats.defense} ❤️${m.stats.hp}</div></div></button>`;});this._container.innerHTML=`<div style="min-height:100%;background:linear-gradient(180deg,rgba(0,0,0,0.5),rgba(0,0,0,0.8));padding:16px;max-width:500px;margin:0 auto;"><button onclick="Sherwood.UI.showMainMenu()" style="background:rgba(0,0,0,0.6);border:1px solid rgba(255,255,255,0.2);color:#fff;padding:6px 14px;border-radius:8px;cursor:pointer;margin-bottom:12px;">← Назад</button><h2 style="color:#f44336;">👹 Логово</h2><p style="color:#aaa;">Билеты: ${p.raid.tickets}/${p.raid.maxTickets}</p>${bh}</div>`;},
+    showTavern(){this._playMusic('tavern_ambient');this._container.style.background="url('"+this._bg.tavern+"') center/cover no-repeat";this._container.innerHTML=`<div style="min-height:100%;background:linear-gradient(180deg,rgba(0,0,0,0.4),rgba(0,0,0,0.7));padding:16px;max-width:500px;margin:0 auto;"><button onclick="Sherwood.UI.showMainMenu()" style="background:rgba(0,0,0,0.6);border:1px solid rgba(255,255,255,0.2);color:#fff;padding:6px 14px;border-radius:8px;cursor:pointer;margin-bottom:12px;">← Назад</button><h2 style="color:#e0c080;">🍺 Таверна «Весёлый Разбойник»</h2><p style="color:#aaa;">Ежедневные задания в разработке.</p></div>`;},
     showPortal(){const p=Sherwood.getPlayer();this._container.style.background="url('assets/lor/2D_sidescroller_RPG_game_background_ultrawide_horizontal_panoram_1395681920.jpeg') center/cover no-repeat";this._container.innerHTML=`<div style="min-height:100%;background:linear-gradient(180deg,rgba(0,0,0,0.4),rgba(0,0,0,0.7));padding:16px;max-width:500px;margin:0 auto;"><button onclick="Sherwood.UI.showMainMenu()" style="background:rgba(0,0,0,0.6);border:1px solid rgba(255,255,255,0.2);color:#fff;padding:6px 14px;border-radius:8px;cursor:pointer;margin-bottom:12px;">← Назад</button><h2 style="color:#4caf50;">🌳 Древний дуб</h2><div style="background:rgba(0,0,0,0.7);border:1px solid rgba(255,255,255,0.2);border-radius:10px;padding:20px;text-align:center;"><div style="font-size:4em;">🌳</div><p style="color:#aaa;">Требуется: 🏆 50 трофеев</p><p style="color:#e0c080;">У вас: 🏆 ${p.resources.trophies}</p></div></div>`;},
-    
-    showBlackMarket(){this._container.style.background="url('assets/lor/Concept_art_of_an_empty_medieval_fantasy_outlaw_black_market_sho_2924495327.jpeg') center/cover no-repeat";this._container.innerHTML=`<div style="min-height:100%;background:linear-gradient(180deg,rgba(0,0,0,0.4),rgba(0,0,0,0.7));padding:16px;max-width:500px;margin:0 auto;"><button onclick="Sherwood.UI.showMainMenu()" style="background:rgba(0,0,0,0.6);border:1px solid rgba(255,255,255,0.2);color:#fff;padding:6px 14px;border-radius:8px;cursor:pointer;margin-bottom:12px;">← Назад</button><h2 style="color:#e0c080;">💰 Разбойничий схрон</h2><p style="color:#aaa;">Рынок в разработке.</p></div>`;},
-    
-    showBestiary(){this._container.style.background="url('assets/lor/Concept_art_of_an_empty_medieval_monster_hunters_study_desk_insi_4116191878.jpeg') center/cover no-repeat";const p=Sherwood.getPlayer();let h='';Object.values(Sherwood.Monsters).forEach(m=>{const k=p.bestiary[m.id]?.killed||0;h+=`<div style="background:rgba(0,0,0,0.7);border:1px solid rgba(255,255,255,0.15);border-left:3px solid ${m.isBoss?'#f44336':'rgba(255,255,255,0.2)'};border-radius:10px;padding:10px;margin-bottom:6px;"><div style="display:flex;align-items:center;gap:8px;"><img src="${m.icon}" style="width:40px;height:40px;object-fit:cover;border-radius:6px;" onerror="this.style.display='none'"><div style="flex:1;"><b style="color:#fff;">${m.name}</b><div style="color:#e0c080;">Убито: ${k}</div></div>${m.isBoss?'<span style="color:#f44336;">👑</span>':''}</div></div>`;});this._container.innerHTML=`<div style="min-height:100%;background:linear-gradient(180deg,rgba(0,0,0,0.4),rgba(0,0,0,0.7));padding:16px;max-width:500px;margin:0 auto;"><button onclick="Sherwood.UI.showMainMenu()" style="background:rgba(0,0,0,0.6);border:1px solid rgba(255,255,255,0.2);color:#fff;padding:6px 14px;border-radius:8px;cursor:pointer;margin-bottom:12px;">← Назад</button><h2 style="color:#e0c080;">📖 Охотничий дневник</h2>${h}</div>`;},
-    
+    showBlackMarket(){this._container.style.background="url('"+this._bg.blackmarket+"') center/cover no-repeat";this._container.innerHTML=`<div style="min-height:100%;background:linear-gradient(180deg,rgba(0,0,0,0.4),rgba(0,0,0,0.7));padding:16px;max-width:500px;margin:0 auto;"><button onclick="Sherwood.UI.showMainMenu()" style="background:rgba(0,0,0,0.6);border:1px solid rgba(255,255,255,0.2);color:#fff;padding:6px 14px;border-radius:8px;cursor:pointer;margin-bottom:12px;">← Назад</button><h2 style="color:#e0c080;">💰 Разбойничий схрон</h2><p style="color:#aaa;">Рынок в разработке.</p></div>`;},
+    showBestiary(){this._container.style.background="url('"+this._bg.bestiary+"') center/cover no-repeat";const p=Sherwood.getPlayer();let h='';Object.values(Sherwood.Monsters).forEach(m=>{const k=p.bestiary[m.id]?.killed||0;h+=`<div style="background:rgba(0,0,0,0.7);border:1px solid rgba(255,255,255,0.15);border-left:3px solid ${m.isBoss?'#f44336':'rgba(255,255,255,0.2)'};border-radius:10px;padding:10px;margin-bottom:6px;"><div style="display:flex;align-items:center;gap:8px;"><img src="${m.icon}" style="width:40px;height:40px;object-fit:cover;border-radius:6px;" onerror="this.style.display='none'"><div style="flex:1;"><b style="color:#fff;">${m.name}</b><div style="color:#e0c080;">Убито: ${k}</div></div>${m.isBoss?'<span style="color:#f44336;">👑</span>':''}</div></div>`;});this._container.innerHTML=`<div style="min-height:100%;background:linear-gradient(180deg,rgba(0,0,0,0.4),rgba(0,0,0,0.7));padding:16px;max-width:500px;margin:0 auto;"><button onclick="Sherwood.UI.showMainMenu()" style="background:rgba(0,0,0,0.6);border:1px solid rgba(255,255,255,0.2);color:#fff;padding:6px 14px;border-radius:8px;cursor:pointer;margin-bottom:12px;">← Назад</button><h2 style="color:#e0c080;">📖 Охотничий дневник</h2>${h}</div>`;},
     showEvents(){this._ph('🎪 Ивенты','Охота, Погоня, Зов огня — в разработке.');},
-    
     _ph(title,text){this._container.innerHTML=`<div style="min-height:100%;background:linear-gradient(180deg,rgba(0,0,0,0.6),rgba(0,0,0,0.9));padding:16px;max-width:500px;margin:0 auto;"><button onclick="Sherwood.UI.showMainMenu()" style="background:rgba(0,0,0,0.6);border:1px solid rgba(255,255,255,0.2);color:#fff;padding:6px 14px;border-radius:8px;cursor:pointer;margin-bottom:12px;">← Назад</button><h2 style="color:#e0c080;">${title}</h2><div style="background:rgba(0,0,0,0.7);border:1px solid rgba(255,255,255,0.2);border-radius:12px;padding:30px;text-align:center;"><div style="font-size:4em;">🏗️</div><p style="color:#aaa;white-space:pre-line;">${text}</p></div></div>`;}
 };
