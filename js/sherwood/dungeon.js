@@ -1,6 +1,6 @@
 /**
  * Sherwood Dungeon System
- * Полностью исправленная версия
+ * Полностью исправленная версия с использованием бесшовного лупа тропинки
  */
 
 Sherwood.Dungeon = {
@@ -107,11 +107,11 @@ Sherwood.Dungeon = {
     
     getSkullConfig(skulls) {
         return {
-            1: { enemyMultiplier: 0.8, rewardMultiplier: 0.6, label: '⭐' },
-            2: { enemyMultiplier: 1.0, rewardMultiplier: 1.0, label: '⭐⭐' },
-            3: { enemyMultiplier: 1.3, rewardMultiplier: 1.5, label: '⭐⭐⭐' },
-            4: { enemyMultiplier: 1.7, rewardMultiplier: 2.0, label: '⭐⭐⭐⭐' },
-            5: { enemyMultiplier: 2.2, rewardMultiplier: 3.0, label: '⭐⭐⭐⭐⭐' }
+            1: { enemyMultiplier: 0.8, rewardMultiplier: 0.6, label: '💀' },
+            2: { enemyMultiplier: 1.0, rewardMultiplier: 1.0, label: '💀💀' },
+            3: { enemyMultiplier: 1.3, rewardMultiplier: 1.5, label: '💀💀💀' },
+            4: { enemyMultiplier: 1.7, rewardMultiplier: 2.0, label: '💀💀💀💀' },
+            5: { enemyMultiplier: 2.2, rewardMultiplier: 3.0, label: '💀💀💀💀💀' }
         };
     },
     
@@ -186,10 +186,16 @@ Sherwood.Dungeon = {
         
         this._placeEnemies(grid, rooms, 9, levelData.monsters);
         
-        // Босс — в последней комнате
+        // Босс в отдельной клетке финальной комнаты
         const bossRoom = rooms[rooms.length - 1];
-        const bx = bossRoom.x + Math.floor(bossRoom.w/2);
-        const by = bossRoom.y + Math.floor(bossRoom.h/2);
+        let bx = bossRoom.x;
+        let by = bossRoom.y;
+        // Если босс спавнится на выходе - сдвигаем
+        if (bx === exitX && by === exitY) {
+            bx = bossRoom.x + bossRoom.w - 1;
+            by = bossRoom.y + bossRoom.h - 1;
+        }
+        
         grid[by][bx].type = 'enemy';
         grid[by][bx].monsterId = levelData.boss;
         grid[by][bx].monsterIcon = 'assets/monsters/' + levelData.boss;
@@ -224,7 +230,6 @@ Sherwood.Dungeon = {
         return this._dungeon;
     },
     
-    // ИСПРАВЛЕННЫЙ МЕТОД: Гарантирует правильный спавн изолированных комнат
     _generateRooms(size) {
         const rooms = [];
         const count = 3;
@@ -252,14 +257,13 @@ Sherwood.Dungeon = {
         if (rooms.length < 3) {
             return [
                 { x: 1, y: 1, w: 2, h: 2 },
-                { x: 4, y: 3, w: 2, h: 2 },
+                { x: 4, y: 2, w: 2, h: 2 },
                 { x: 5, y: 5, w: 2, h: 2 }
             ];
         }
         return rooms;
     },
-    
-    // ИСПРАВЛЕННЫЙ МЕТОД: Прокладывает коридоры, СТИРАЯ стены
+
     _carveCorridor(grid, x1, y1, x2, y2, floorTile) {
         let cx = x1;
         while (cx !== x2) {
@@ -276,36 +280,33 @@ Sherwood.Dungeon = {
             cy += (y2 > y1) ? 1 : -1;
         }
     },
-    
-    // ИСПРАВЛЕННЫЙ МЕТОД: Никаких мобов на стартовой позиции
+
     _placeEnemies(grid, rooms, count, monsterPool) {
         let placed = 0;
         let attempts = 0;
         const startRoom = rooms[0];
         
-        while (placed < count && attempts < 200) {
+        while (placed < count && attempts < 150) {
             attempts++;
             const room = rooms[Math.floor(Math.random() * rooms.length)];
-            
             if (room === startRoom) continue;
             
             const rx = room.x + Math.floor(Math.random() * room.w);
             const ry = room.y + Math.floor(Math.random() * room.h);
             
             if (grid[ry][rx].type === 'floor' && grid[ry][rx].walkable) {
-                const monsterFile = monsterPool[Math.floor(Math.random() * monsterPool.length)];
+                const mFile = monsterPool[Math.floor(Math.random() * monsterPool.length)];
                 grid[ry][rx].type = 'enemy';
-                grid[ry][rx].monsterId = monsterFile;
-                grid[ry][rx].monsterIcon = 'assets/monsters/' + monsterFile;
-                grid[ry][rx].monsterName = monsterFile.replace('.png', '').replace(/\d+/g, '').replace(/_/g, ' ');
+                grid[ry][rx].monsterId = mFile;
+                grid[ry][rx].monsterIcon = 'assets/monsters/' + mFile;
+                grid[ry][rx].monsterName = mFile.replace('.png', '').replace(/\d+/g, '').replace(/_/g, ' ');
                 grid[ry][rx].walkable = false;
                 grid[ry][rx].isBoss = false;
                 placed++;
             }
         }
     },
-    
-    // ИСПРАВЛЕННЫЙ МЕТОД: Сундуки на свободных клетках
+
     _placeChests(grid, rooms, count) {
         let placed = 0;
         let attempts = 0;
@@ -328,8 +329,7 @@ Sherwood.Dungeon = {
             }
         }
     },
-    
-    // ИСПРАВЛЕННЫЙ МЕТОД: Спецобъекты
+
     _placeSpecialObjects(grid, rooms, count) {
         let placed = 0;
         let attempts = 0;
@@ -346,8 +346,7 @@ Sherwood.Dungeon = {
             }
         }
     },
-    
-    // ИСПРАВЛЕННЫЙ МЕТОД: Открывает 5 клеток (центр + 4 стороны)
+
     _updateVisibility(px, py) {
         if (!this._dungeon) return;
         const size = this._dungeon.size;
@@ -370,7 +369,7 @@ Sherwood.Dungeon = {
             }
         });
     },
-    
+
     movePlayer(dx, dy) {
         if (!this._dungeon || this._dungeon.status !== 'active') return false;
         
@@ -411,7 +410,7 @@ Sherwood.Dungeon = {
         this._updateVisibility(nextX, nextY);
         return true;
     },
-    
+
     _calculateReward() {
         const d = this._dungeon;
         if (!d) return;
@@ -424,14 +423,14 @@ Sherwood.Dungeon = {
         Sherwood.addResource('gold', gold);
         Sherwood.addExp(exp);
     },
-    
+
     getDungeon() { return this._dungeon; },
-    
+
     leaveDungeon() {
         if (this._dungeon) this._dungeon.status = 'abandoned';
         this._dungeon = null;
     },
-    
+
     moveToTile(x, y) {
         const d = this._dungeon;
         if (!d || d.status !== 'active') return null;
@@ -441,11 +440,11 @@ Sherwood.Dungeon = {
         const cell = d.grid[y][x];
         if (!cell || !cell.walkable) return { success: false, reason: 'wall' };
         if (cell.type === 'enemy') return { success: false, reason: 'enemy', tile: cell };
-        
+
         d.playerPos = { x, y };
         d.steps++;
         this._updateVisibility(x, y);
-        
+
         if (cell.type === 'chest' && !cell.looted) {
             cell.looted = true;
             d.chestsOpened++;
@@ -453,10 +452,10 @@ Sherwood.Dungeon = {
             Sherwood.addResource('silver', cell.reward.silver);
             return { type: 'chest', reward: cell.reward };
         }
-        
+
         const specialResult = this._processSpecial(cell);
         if (specialResult) return specialResult;
-        
+
         if (cell.type === 'exit') {
             d.status = 'completed';
             this._calculateReward();
@@ -464,7 +463,7 @@ Sherwood.Dungeon = {
         }
         return { type: 'empty' };
     },
-    
+
     _processSpecial(cell) {
         if (cell.used) return null;
         switch(cell.type) {
@@ -493,7 +492,7 @@ Sherwood.Dungeon = {
                 return null;
         }
     },
-    
+
     attackEnemy(x, y) {
         const d = this._dungeon;
         if (!d || d.status !== 'active') return null;
@@ -504,7 +503,7 @@ Sherwood.Dungeon = {
         if (!cell || cell.type !== 'enemy') return { success: false, reason: 'no_enemy' };
         return { success: true, tile: cell };
     },
-    
+
     fightMonster(tile) {
         if (!tile || !tile.monsterId) return null;
         const battle = Sherwood.Combat.startPvE(tile.monsterId);
@@ -519,12 +518,12 @@ Sherwood.Dungeon = {
                     tile.monsterIcon = null;
                     tile.monsterName = null;
                     tile.tile = 'assets/icons/level_seamless_horizontal_loop_1.jpg';
-                    
+
                     if (tile.isBoss) {
                         this._dungeon.bossDefeated = true;
                         this.completeLevel(this._dungeon.dungeonId, this._dungeon.level, this._dungeon.skulls + 1);
                     }
-                    
+
                     if (Math.random() < 0.2) {
                         const items = Sherwood.EquipmentDB?.items || [];
                         const item = items[Math.floor(Math.random() * items.length)];
@@ -547,11 +546,3 @@ Sherwood.Dungeon = {
         return battle;
     }
 };
-
-if (typeof Sherwood === 'undefined') {
-    var Sherwood = {
-        getPlayer() {
-            return { dungeon: { tickets: 5 } };
-        }
-    };
-}
