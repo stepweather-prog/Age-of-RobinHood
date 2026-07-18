@@ -26,22 +26,25 @@ Sherwood.UI = {
     },
     
     init() {
+    // Берём существующий контейнер из HTML
+    this._container = document.getElementById('game-container');
+    if (!this._container) {
         this._container = document.getElementById('sherwood-game');
-        if (!this._container) {
-            this._container = document.createElement('div');
-            this._container.id = 'sherwood-game';
-            this._container.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:var(--bg-primary);z-index:9999;overflow-y:auto;display:none;';
-            document.body.appendChild(this._container);
-        }
-        setTimeout(() => this._addGameButton(), 500);
-        const gb = document.getElementById('btn-game'), gl = document.getElementById('label-game');
-        if (gb) gb.onclick = () => this.toggle();
-        if (gl) gl.onclick = () => this.toggle();
-        Sherwood.on('BATTLE_VICTORY', (d) => this._onBattleVictory(d));
-        Sherwood.on('BATTLE_DEFEAT', () => this._onBattleDefeat());
-        Sherwood.on('PLAYER_LEVEL_UP', () => this._playSound('levelup'));
-        this._initSounds();
-    },
+    }
+    if (!this._container) {
+        this._container = document.createElement('div');
+        this._container.id = 'sherwood-game';
+        document.body.appendChild(this._container);
+    }
+    // Стили для контейнера — БЕЗ display:none
+    this._container.style.cssText = 'width:100%;height:100%;overflow-y:auto;background:var(--bg-primary);';
+    
+    // Звуки и события
+    this._initSounds();
+    Sherwood.on('BATTLE_VICTORY', (d) => this._onBattleVictory(d));
+    Sherwood.on('BATTLE_DEFEAT', () => this._onBattleDefeat());
+    Sherwood.on('PLAYER_LEVEL_UP', () => this._playSound('levelup'));
+},
     
     _initSounds() {
         const s = {
