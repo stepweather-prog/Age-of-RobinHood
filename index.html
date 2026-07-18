@@ -72,7 +72,7 @@
                     Sherwood.UI._container = document.getElementById('game-container');
                     Sherwood.UI._container.style.cssText = 'width:100%;height:100%;overflow-y:auto;';
                     Sherwood.UI._container.style.display = 'block';
-                    
+                    Sherwood.UI.init();
                     Sherwood.UI.showMainMenu();
                     Sherwood.Router.navigate('main_menu');
                     Sherwood.Quests.init();
