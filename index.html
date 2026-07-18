@@ -21,8 +21,7 @@
         * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
         html, body { height:100%; overflow:hidden; font-family:'Segoe UI','Inter',sans-serif; font-size:clamp(14px,2.5vw,16px); }
         body { background:var(--bg-primary); color:var(--text); display:flex; flex-direction:column; height:100dvh; }
-        #game-container { flex:1; overflow-y:auto; }
-        .hidden { display:none !important; }
+        #game-container { width:100%; height:100%; overflow-y:auto; }
     </style>
 </head>
 <body>
@@ -44,7 +43,7 @@
         window.firebaseServerTimestamp = serverTimestamp;
     </script>
 
-    <!-- P2P + Crypto -->
+    <!-- P2P + Crypto (для будущего PvP) -->
     <script src="crypto-worker.js"></script>
     <script src="p2ppong.js"></script>
 
@@ -64,14 +63,9 @@
     <script src="js/sherwood/ui.js"></script>
 
     <script>
-        // Запуск игры
         (function startGame() {
             if (window.Sherwood) {
                 Sherwood.init().then(() => {
-                    // Перенаправляем контейнер UI на #game-container
-                    Sherwood.UI._container = document.getElementById('game-container');
-                    Sherwood.UI._container.style.cssText = 'width:100%;height:100%;overflow-y:auto;';
-                    Sherwood.UI._container.style.display = 'block';
                     Sherwood.UI.init();
                     Sherwood.UI.showMainMenu();
                     Sherwood.Router.navigate('main_menu');
@@ -81,8 +75,6 @@
                     Sherwood.Tavern.init();
                     Sherwood.BlackMarket.init();
                     Sherwood.Events.init();
-                    
-                    document.getElementById('game-container').classList.remove('hidden');
                     console.log('🏹 Sherwood RPG готов!');
                 });
             } else {
