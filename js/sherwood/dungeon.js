@@ -72,7 +72,7 @@ Sherwood.Dungeon = {
         const progress = this._playerProgress[dungeonId];
         if (level > progress.level + 1) return null;
         
-        const monsterCount = 9; // 9 обычных монстров + 1 босс = 10
+        const monsterCount = 9;
         const monsters = [];
         const pool = dungeon.monsters;
         for (let i = 0; i < monsterCount; i++) {
@@ -86,7 +86,7 @@ Sherwood.Dungeon = {
             monsters,
             boss: dungeon.boss,
             skulls: progress.skulls,
-            isBossLevel: true // на каждом уровне есть босс
+            isBossLevel: true
         };
     },
     
@@ -128,13 +128,7 @@ Sherwood.Dungeon = {
         
         const size = 8;
         const grid = [];
-        const pathTiles = [
-            'assets/icons/Sherwood dungeon path1.jpeg',
-            'assets/icons/Sherwood dungeon path2.jpeg',
-            'assets/icons/Sherwood dungeon path3.jpeg',
-            'assets/icons/Sherwood dungeon path4.jpeg',
-            'assets/icons/Sherwood dungeon path5.jpeg'
-        ];
+        const floorTile = 'assets/icons/level_seamless_horizontal_loop_1.jpg';
         const closedTiles = [];
         for (let i = 1; i <= 14; i++) {
             closedTiles.push('assets/icons/Dungeon tiles' + i + '.jpeg');
@@ -160,7 +154,7 @@ Sherwood.Dungeon = {
                     if (x < size && y < size) {
                         grid[y][x].type = 'floor';
                         grid[y][x].walkable = true;
-                        grid[y][x].tile = pathTiles[Math.floor(Math.random() * pathTiles.length)];
+                        grid[y][x].tile = floorTile;
                     }
                 }
             }
@@ -171,7 +165,7 @@ Sherwood.Dungeon = {
             this._carveCorridor(grid, 
                 a.x + Math.floor(a.w/2), a.y + Math.floor(a.h/2),
                 b.x + Math.floor(b.w/2), b.y + Math.floor(b.h/2),
-                pathTiles
+                floorTile
             );
         }
         
@@ -181,21 +175,19 @@ Sherwood.Dungeon = {
         grid[startY][startX].type = 'start';
         grid[startY][startX].explored = true;
         grid[startY][startX].visible = true;
-        grid[startY][startX].tile = pathTiles[0];
+        grid[startY][startX].tile = floorTile;
         
         const exitRoom = rooms[rooms.length - 1];
         const exitX = exitRoom.x + Math.floor(exitRoom.w/2);
         const exitY = exitRoom.y + Math.floor(exitRoom.h/2);
         grid[exitY][exitX].type = 'exit';
         grid[exitY][exitX].walkable = true;
-        grid[exitY][exitX].tile = pathTiles[0];
+        grid[exitY][exitX].tile = floorTile;
         
-        // 9 обычных монстров
-        const enemyCount = 9;
-        this._placeEnemies(grid, rooms, enemyCount, levelData.monsters);
+        this._placeEnemies(grid, rooms, 9, levelData.monsters);
         
-        // Босс - 10-й противник
-        const bossRoom = rooms[rooms.length - 1] || rooms[0];
+        // Босс — в последней комнате
+        const bossRoom = rooms[rooms.length - 1];
         const bx = bossRoom.x + Math.floor(bossRoom.w/2);
         const by = bossRoom.y + Math.floor(bossRoom.h/2);
         grid[by][bx].type = 'enemy';
@@ -206,7 +198,6 @@ Sherwood.Dungeon = {
         grid[by][bx].isBoss = true;
         grid[by][bx].isBossCell = true;
         
-        // Сундуки
         const chestCount = Math.floor((2 + level/3) * config.rewardMultiplier);
         this._placeChests(grid, rooms, Math.min(chestCount, 5));
         this._placeSpecialObjects(grid, rooms, 2);
@@ -218,7 +209,7 @@ Sherwood.Dungeon = {
             status: 'active',
             monstersKilled: 0,
             chestsOpened: 0,
-            totalEnemies: enemyCount + 1, // 9 + босс
+            totalEnemies: 10,
             totalChests: chestCount,
             isBossLevel: true,
             bossDefeated: false,
@@ -233,93 +224,103 @@ Sherwood.Dungeon = {
         return this._dungeon;
     },
     
+    // ИСПРАВЛЕННЫЙ МЕТОД: Гарантирует правильный спавн изолированных комнат
     _generateRooms(size) {
         const rooms = [];
-        const count = 4 + Math.floor(Math.random() * 2);
-        for (let i = 0; i < count; i++) {
-            const w = 2 + Math.floor(Math.random() * 2);
-            const h = 2 + Math.floor(Math.random() * 2);
-            const x = 1 + Math.floor(Math.random() * (size - w - 1));
-            const y = 1 + Math.floor(Math.random() * (size - h - 1));
+        const count = 3;
+        let attempts = 0;
+        
+        while (rooms.length < count && attempts < 150) {
+            attempts++;
+            const w = 2;
+            const h = 2;
+            const x = Math.floor(Math.random() * (size - w - 1)) + 1;
+            const y = Math.floor(Math.random() * (size - h - 1)) + 1;
+            
             let overlap = false;
             for (const r of rooms) {
-                if (x < r.x + r.w + 1 && x + w + 1 > r.x && y < r.y + r.h + 1 && y + h + 1 > r.y) {
+                if (x <= r.x + r.w && x + w >= r.x && y <= r.y + r.h && y + h >= r.y) {
                     overlap = true;
                     break;
                 }
             }
-            if (!overlap) rooms.push({ x, y, w, h });
+            if (!overlap) {
+                rooms.push({ x, y, w, h });
+            }
         }
-        if (rooms.length === 0) rooms.push({ x: 2, y: 2, w: 3, h: 3 });
+        
+        if (rooms.length < 3) {
+            return [
+                { x: 1, y: 1, w: 2, h: 2 },
+                { x: 4, y: 3, w: 2, h: 2 },
+                { x: 5, y: 5, w: 2, h: 2 }
+            ];
+        }
         return rooms;
     },
     
-    _carveCorridor(grid, x1, y1, x2, y2, pathTiles) {
-        let x = x1, y = y1;
-        while (x !== x2) {
-            if (grid[y] && grid[y][x] && grid[y][x].type === 'wall') {
-                grid[y][x].type = 'floor';
-                grid[y][x].walkable = true;
-                grid[y][x].tile = pathTiles[Math.floor(Math.random() * pathTiles.length)];
-            }
-            x += (x < x2) ? 1 : -1;
+    // ИСПРАВЛЕННЫЙ МЕТОД: Прокладывает коридоры, СТИРАЯ стены
+    _carveCorridor(grid, x1, y1, x2, y2, floorTile) {
+        let cx = x1;
+        while (cx !== x2) {
+            grid[y1][cx].type = 'floor';
+            grid[y1][cx].walkable = true;
+            grid[y1][cx].tile = floorTile;
+            cx += (x2 > x1) ? 1 : -1;
         }
-        while (y !== y2) {
-            if (grid[y] && grid[y][x] && grid[y][x].type === 'wall') {
-                grid[y][x].type = 'floor';
-                grid[y][x].walkable = true;
-                grid[y][x].tile = pathTiles[Math.floor(Math.random() * pathTiles.length)];
-            }
-            y += (y < y2) ? 1 : -1;
+        let cy = y1;
+        while (cy !== y2) {
+            grid[cy][x2].type = 'floor';
+            grid[cy][x2].walkable = true;
+            grid[cy][x2].tile = floorTile;
+            cy += (y2 > y1) ? 1 : -1;
         }
     },
     
+    // ИСПРАВЛЕННЫЙ МЕТОД: Никаких мобов на стартовой позиции
     _placeEnemies(grid, rooms, count, monsterPool) {
         let placed = 0;
-        const cells = [];
-        for (const room of rooms) {
-            for (let y = room.y; y < room.y + room.h; y++) {
-                for (let x = room.x; x < room.x + room.w; x++) {
-                    if (grid[y] && grid[y][x] && grid[y][x].walkable && grid[y][x].type === 'floor') {
-                        cells.push({ x, y });
-                    }
-                }
-            }
-        }
-        while (placed < count && cells.length > 0) {
-            const idx = Math.floor(Math.random() * cells.length);
-            const cell = cells.splice(idx, 1)[0];
-            const monsterId = monsterPool[Math.floor(Math.random() * monsterPool.length)];
-            if (grid[cell.y] && grid[cell.y][cell.x]) {
-                grid[cell.y][cell.x].type = 'enemy';
-                grid[cell.y][cell.x].monsterId = monsterId;
-                grid[cell.y][cell.x].monsterIcon = 'assets/monsters/' + monsterId;
-                grid[cell.y][cell.x].monsterName = monsterId.replace('.png', '').replace(/_/g, ' ');
-                grid[cell.y][cell.x].walkable = false;
+        let attempts = 0;
+        const startRoom = rooms[0];
+        
+        while (placed < count && attempts < 200) {
+            attempts++;
+            const room = rooms[Math.floor(Math.random() * rooms.length)];
+            
+            if (room === startRoom) continue;
+            
+            const rx = room.x + Math.floor(Math.random() * room.w);
+            const ry = room.y + Math.floor(Math.random() * room.h);
+            
+            if (grid[ry][rx].type === 'floor' && grid[ry][rx].walkable) {
+                const monsterFile = monsterPool[Math.floor(Math.random() * monsterPool.length)];
+                grid[ry][rx].type = 'enemy';
+                grid[ry][rx].monsterId = monsterFile;
+                grid[ry][rx].monsterIcon = 'assets/monsters/' + monsterFile;
+                grid[ry][rx].monsterName = monsterFile.replace('.png', '').replace(/\d+/g, '').replace(/_/g, ' ');
+                grid[ry][rx].walkable = false;
+                grid[ry][rx].isBoss = false;
                 placed++;
             }
         }
     },
     
+    // ИСПРАВЛЕННЫЙ МЕТОД: Сундуки на свободных клетках
     _placeChests(grid, rooms, count) {
         let placed = 0;
-        const cells = [];
-        for (const room of rooms) {
-            for (let y = room.y; y < room.y + room.h; y++) {
-                for (let x = room.x; x < room.x + room.w; x++) {
-                    if (grid[y] && grid[y][x] && grid[y][x].walkable && grid[y][x].type === 'floor') {
-                        cells.push({ x, y });
-                    }
-                }
-            }
-        }
-        while (placed < count && cells.length > 0) {
-            const idx = Math.floor(Math.random() * cells.length);
-            const cell = cells.splice(idx, 1)[0];
-            if (grid[cell.y] && grid[cell.y][cell.x]) {
-                grid[cell.y][cell.x].type = 'chest';
-                grid[cell.y][cell.x].looted = false;
-                grid[cell.y][cell.x].reward = {
+        let attempts = 0;
+        while (placed < count && attempts < 100) {
+            attempts++;
+            const room = rooms[Math.floor(Math.random() * rooms.length)];
+            const rx = room.x + Math.floor(Math.random() * room.w);
+            const ry = room.y + Math.floor(Math.random() * room.h);
+            
+            if (grid[ry][rx].type === 'floor' && grid[ry][rx].walkable) {
+                grid[ry][rx].type = 'chest';
+                grid[ry][rx].tile = 'assets/icons/Sherwood_chest_closed.jpeg';
+                grid[ry][rx].walkable = true;
+                grid[ry][rx].looted = false;
+                grid[ry][rx].reward = {
                     gold: 20 + Math.floor(Math.random() * 60),
                     silver: 80 + Math.floor(Math.random() * 300)
                 };
@@ -328,74 +329,107 @@ Sherwood.Dungeon = {
         }
     },
     
+    // ИСПРАВЛЕННЫЙ МЕТОД: Спецобъекты
     _placeSpecialObjects(grid, rooms, count) {
-        const specialTypes = ['portal', 'altar', 'trap_chest', 'heal_spring'];
-        const cells = [];
-        for (const room of rooms) {
-            for (let y = room.y; y < room.y + room.h; y++) {
-                for (let x = room.x; x < room.x + room.w; x++) {
-                    if (grid[y] && grid[y][x] && grid[y][x].walkable && grid[y][x].type === 'floor') {
-                        cells.push({ x, y });
-                    }
-                }
-            }
-        }
         let placed = 0;
-        while (placed < count && cells.length > 0) {
-            const idx = Math.floor(Math.random() * cells.length);
-            const cell = cells.splice(idx, 1)[0];
-            const type = specialTypes[Math.floor(Math.random() * specialTypes.length)];
-            if (grid[cell.y] && grid[cell.y][cell.x]) {
-                grid[cell.y][cell.x].type = type;
-                grid[cell.y][cell.x].specialType = type;
-                grid[cell.y][cell.x].used = false;
-                switch(type) {
-                    case 'portal':
-                        grid[cell.y][cell.x].reward = { gold: 30 + Math.floor(Math.random() * 50), exp: 20 + Math.floor(Math.random() * 30) };
-                        grid[cell.y][cell.x].icon = '🌀';
-                        break;
-                    case 'altar':
-                        grid[cell.y][cell.x].reward = { hp: 30 + Math.floor(Math.random() * 40) };
-                        grid[cell.y][cell.x].icon = '🔮';
-                        break;
-                    case 'trap_chest':
-                        grid[cell.y][cell.x].monsterId = this._getRandomMonster(2).id;
-                        grid[cell.y][cell.x].icon = '🎭';
-                        break;
-                    case 'heal_spring':
-                        grid[cell.y][cell.x].reward = { hp: 50 + Math.floor(Math.random() * 60) };
-                        grid[cell.y][cell.x].icon = '💧';
-                        break;
-                }
+        let attempts = 0;
+        while (placed < count && attempts < 50) {
+            attempts++;
+            const room = rooms[Math.floor(Math.random() * rooms.length)];
+            const rx = room.x + Math.floor(Math.random() * room.w);
+            const ry = room.y + Math.floor(Math.random() * room.h);
+            
+            if (grid[ry][rx].type === 'floor' && grid[ry][rx].walkable) {
+                grid[ry][rx].type = 'shrine';
+                grid[ry][rx].walkable = true;
                 placed++;
             }
         }
     },
     
-    _getRandomMonster(tier) {
-        const monsters = Object.values(Sherwood.Monsters || {});
-        const available = monsters.filter(m => m && !m.isBoss);
-        if (available.length === 0) {
-            return { id: 'swamp_ghoul_1', name: 'Монстр', icon: 'assets/monsters/Swamp Ghoul1.png' };
-        }
-        return available[Math.floor(Math.random() * available.length)];
+    // ИСПРАВЛЕННЫЙ МЕТОД: Открывает 5 клеток (центр + 4 стороны)
+    _updateVisibility(px, py) {
+        if (!this._dungeon) return;
+        const size = this._dungeon.size;
+        const grid = this._dungeon.grid;
+        
+        const directions = [
+            { x: 0, y: 0 },
+            { x: 0, y: -1 },
+            { x: 0, y: 1 },
+            { x: -1, y: 0 },
+            { x: 1, y: 0 }
+        ];
+        
+        directions.forEach(dir => {
+            const nx = px + dir.x;
+            const ny = py + dir.y;
+            if (nx >= 0 && nx < size && ny >= 0 && ny < size) {
+                grid[ny][nx].visible = true;
+                grid[ny][nx].explored = true;
+            }
+        });
     },
     
-    _updateVisibility(x, y) {
+    movePlayer(dx, dy) {
+        if (!this._dungeon || this._dungeon.status !== 'active') return false;
+        
+        const nextX = this._dungeon.playerPos.x + dx;
+        const nextY = this._dungeon.playerPos.y + dy;
+        const size = this._dungeon.size;
+        
+        if (nextX < 0 || nextX >= size || nextY < 0 || nextY >= size) return false;
+        
+        const cell = this._dungeon.grid[nextY][nextX];
+        if (cell.type === 'wall') return false;
+        
+        this._dungeon.steps++;
+        
+        if (cell.type === 'enemy') {
+            this._updateVisibility(nextX, nextY);
+            if (typeof Sherwood.Battle !== 'undefined') {
+                Sherwood.Battle.start(cell);
+            }
+            return 'battle_started';
+        }
+        
+        this._dungeon.playerPos.x = nextX;
+        this._dungeon.playerPos.y = nextY;
+        
+        if (cell.type === 'chest') {
+            this._dungeon.chestsOpened++;
+            cell.type = 'floor';
+            cell.tile = 'assets/icons/Sherwood_chest_opened.jpeg';
+        }
+        
+        if (cell.type === 'exit') {
+            this._dungeon.status = 'completed';
+            this._calculateReward();
+            return 'exit';
+        }
+        
+        this._updateVisibility(nextX, nextY);
+        return true;
+    },
+    
+    _calculateReward() {
         const d = this._dungeon;
         if (!d) return;
-        const radius = 2;
-        for (let dy = -radius; dy <= radius; dy++) {
-            for (let dx = -radius; dx <= radius; dx++) {
-                const nx = x + dx, ny = y + dy;
-                if (nx >= 0 && nx < d.size && ny >= 0 && ny < d.size) {
-                    if (Math.abs(dx) + Math.abs(dy) <= radius) {
-                        d.grid[ny][nx].visible = true;
-                        if (d.grid[ny][nx].walkable) d.grid[ny][nx].explored = true;
-                    }
-                }
-            }
-        }
+        const config = this.getSkullConfig(d.skulls);
+        const mult = config ? config.rewardMultiplier : 1;
+        const baseGold = d.monstersKilled * 35 + d.chestsOpened * 55;
+        const baseExp = d.monstersKilled * 30 + d.chestsOpened * 40;
+        const gold = Math.floor(baseGold * mult);
+        const exp = Math.floor(baseExp * mult);
+        Sherwood.addResource('gold', gold);
+        Sherwood.addExp(exp);
+    },
+    
+    getDungeon() { return this._dungeon; },
+    
+    leaveDungeon() {
+        if (this._dungeon) this._dungeon.status = 'abandoned';
+        this._dungeon = null;
     },
     
     moveToTile(x, y) {
@@ -440,15 +474,16 @@ Sherwood.Dungeon = {
                 Sherwood.addExp(cell.reward.exp);
                 return { type: 'portal', reward: cell.reward };
             case 'altar':
+            case 'shrine':
                 cell.used = true;
                 const player = Sherwood.getPlayer();
-                const healed = Math.min(cell.reward.hp, player.stats.maxHp - player.stats.hp);
+                const healed = Math.min(cell.reward?.hp || 30, player.stats.maxHp - player.stats.hp);
                 player.stats.hp += healed;
                 return { type: 'altar', heal: healed };
             case 'heal_spring':
                 cell.used = true;
                 const p2 = Sherwood.getPlayer();
-                const h2 = Math.min(cell.reward.hp, p2.stats.maxHp - p2.stats.hp);
+                const h2 = Math.min(cell.reward?.hp || 50, p2.stats.maxHp - p2.stats.hp);
                 p2.stats.hp += h2;
                 return { type: 'heal_spring', heal: h2 };
             case 'trap_chest':
@@ -483,16 +518,13 @@ Sherwood.Dungeon = {
                     tile.monsterId = null;
                     tile.monsterIcon = null;
                     tile.monsterName = null;
-                    tile.tile = 'assets/icons/Sherwood dungeon path1.jpeg';
+                    tile.tile = 'assets/icons/level_seamless_horizontal_loop_1.jpg';
                     
-                    // Если босс убит
                     if (tile.isBoss) {
                         this._dungeon.bossDefeated = true;
-                        // Даём звезду
                         this.completeLevel(this._dungeon.dungeonId, this._dungeon.level, this._dungeon.skulls + 1);
                     }
                     
-                    // Шанс на лут 20%
                     if (Math.random() < 0.2) {
                         const items = Sherwood.EquipmentDB?.items || [];
                         const item = items[Math.floor(Math.random() * items.length)];
@@ -513,31 +545,13 @@ Sherwood.Dungeon = {
             });
         }
         return battle;
-    },
-    
-    _calculateReward() {
-        const d = this._dungeon;
-        if (!d) return;
-        const config = this.getSkullConfig(d.skulls);
-        const mult = config ? config.rewardMultiplier : 1;
-        const baseGold = d.monstersKilled * 35 + d.chestsOpened * 55;
-        const baseExp = d.monstersKilled * 30 + d.chestsOpened * 40;
-        const gold = Math.floor(baseGold * mult);
-        const exp = Math.floor(baseExp * mult);
-        Sherwood.addResource('gold', gold);
-        Sherwood.addExp(exp);
-    },
-    
-    getDungeon() { return this._dungeon; },
-    
-    leaveDungeon() {
-        if (this._dungeon) this._dungeon.status = 'abandoned';
-        this._dungeon = null;
-    },
-    
-    hasBossNear(d, x, y) {
-        if (!d || !d.bossX === undefined) return false;
-        const dist = Math.abs(x - d.bossX) + Math.abs(y - d.bossY);
-        return dist === 1 && !d.grid[y][x].explored;
     }
 };
+
+if (typeof Sherwood === 'undefined') {
+    var Sherwood = {
+        getPlayer() {
+            return { dungeon: { tickets: 5 } };
+        }
+    };
+}
