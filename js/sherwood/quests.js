@@ -1,11 +1,20 @@
 /**
  * Sherwood Quests System
- * Система квестов и прогрессии
+ * Система квестов и прогрессии с перезарядкой
  */
 
 Sherwood.Quests = {
     _quests: {},
     _activeQuest: null,
+    _lastBattleTime: 0,
+    _cooldownMinutes: 30,
+    
+    // Дневные лимиты НА НАГРАДЫ (не на бои)
+    _dailyGoldLimit: 100,
+    _dailySilverLimit: 1000,
+    _dailyGoldEarned: 0,
+    _dailySilverEarned: 0,
+    _dailyResetTime: null,
     
     _definitions: {
         chapter1_intro: {
@@ -47,7 +56,10 @@ Sherwood.Quests = {
                 exp: 200,
                 item: 'leather_hood'
             },
-            requiredLevel: 1
+            requiredLevel: 1,
+            isBossChapter: false,
+            bossId: null,
+            bossName: null
         },
         
         chapter2_swamp: {
@@ -81,7 +93,10 @@ Sherwood.Quests = {
                 exp: 400,
                 item: 'leather_armor'
             },
-            requiredLevel: 3
+            requiredLevel: 3,
+            isBossChapter: false,
+            bossId: null,
+            bossName: null
         },
         
         chapter3_deep_forest: {
@@ -115,7 +130,10 @@ Sherwood.Quests = {
                 exp: 600,
                 item: 'ranger_hood'
             },
-            requiredLevel: 6
+            requiredLevel: 6,
+            isBossChapter: false,
+            bossId: null,
+            bossName: null
         },
         
         chapter4_roads: {
@@ -149,7 +167,10 @@ Sherwood.Quests = {
                 exp: 800,
                 item: 'sherwood_bow'
             },
-            requiredLevel: 10
+            requiredLevel: 10,
+            isBossChapter: false,
+            bossId: null,
+            bossName: null
         },
         
         chapter5_castle: {
@@ -185,38 +206,26 @@ Sherwood.Quests = {
                 trophy: true
             },
             requiredLevel: 15,
-            isFinalChapter: true
-        },
-        
-        daily_patrol: {
-            id: 'daily_patrol',
-            type: 'daily',
-            name: 'Лесной патруль',
-            description: 'Ежедневный обход леса.',
-            tasks: [
-                {
-                    id: 'daily_kills',
-                    type: 'kill_any',
-                    description: 'Убить любых монстров',
-                    target: 10,
-                    progress: 0,
-                    reward: { gold: 30, silver: 100, exp: 60, trophies: 2 }
-                }
-            ],
-            refreshTime: 'daily',
-            requiredLevel: 2
+            isBossChapter: true,
+            bossId: 'sheriff_nottingham',
+            bossName: 'Шериф Ноттингемский'
         }
     },
     
     init() {
+        this._generateBossChapters();
         const player = Sherwood.getPlayer();
         if (!player) return;
         
         this._quests = player.questProgress || {};
+        this._lastBattleTime = player.lastQuestBattle || 0;
+        
+        this._loadDailyLimits();
         
         Sherwood.on('BATTLE_VICTORY', (data) => {
             if (data.monster) {
                 this._onMonsterKilled(data.monster);
+                this._checkBossCooldown();
             }
         });
         
@@ -226,6 +235,130 @@ Sherwood.Quests = {
         
         Sherwood.on('ITEM_EQUIPPED', (data) => {
             this._checkEquipQuests(data.part);
+        });
+        
+        this._checkDailyReset();
+    },
+    
+    _loadDailyLimits() {
+        const saved = localStorage.getItem('sherwood_daily_limits');
+        if (saved) {
+            try {
+                const data = JSON.parse(saved);
+                const today = new Date().toDateString();
+                if (data.date === today) {
+                    this._dailyGoldEarned = data.goldEarned || 0;
+                    this._dailySilverEarned = data.silverEarned || 0;
+                    return;
+                }
+            } catch(e) {}
+        }
+        this._dailyGoldEarned = 0;
+        this._dailySilverEarned = 0;
+        this._saveDailyLimits();
+    },
+    
+    _saveDailyLimits() {
+        localStorage.setItem('sherwood_daily_limits', JSON.stringify({
+            date: new Date().toDateString(),
+            goldEarned: this._dailyGoldEarned,
+            silverEarned: this._dailySilverEarned
+        }));
+    },
+    
+    _checkDailyReset() {
+        const saved = localStorage.getItem('sherwood_daily_limits');
+        if (saved) {
+            try {
+                const data = JSON.parse(saved);
+                const today = new Date().toDateString();
+                if (data.date !== today) {
+                    this._dailyGoldEarned = 0;
+                    this._dailySilverEarned = 0;
+                    this._saveDailyLimits();
+                }
+            } catch(e) {}
+        }
+    },
+    
+    _applyDailyLimits(gold, silver) {
+        let actualGold = gold;
+        let actualSilver = silver;
+        
+        if (this._dailyGoldEarned < this._dailyGoldLimit) {
+            const available = this._dailyGoldLimit - this._dailyGoldEarned;
+            actualGold = Math.min(gold, available);
+        } else {
+            actualGold = 0;
+        }
+        
+        if (this._dailySilverEarned < this._dailySilverLimit) {
+            const available = this._dailySilverLimit - this._dailySilverEarned;
+            actualSilver = Math.min(silver, available);
+        } else {
+            actualSilver = 0;
+        }
+        
+        this._dailyGoldEarned += actualGold;
+        this._dailySilverEarned += actualSilver;
+        this._saveDailyLimits();
+        
+        return { gold: actualGold, silver: actualSilver };
+    },
+    
+    _generateBossChapters() {
+        const bossNames = [
+            { id: 'gray_wolf_leader', name: 'Серый волк-вожак', tier: 1 },
+            { id: 'swamp_prince', name: 'Болотный князь', tier: 1 },
+            { id: 'ancient_leshy', name: 'Древний леший', tier: 2 },
+            { id: 'wendigo_mutant', name: 'Вендиго-мутант', tier: 2 },
+            { id: 'shadow_stag', name: 'Теневой олень', tier: 2 },
+            { id: 'triton_maneater', name: 'Тритон-людоед', tier: 3 },
+            { id: 'beetle_giant', name: 'Короед-великан', tier: 3 },
+            { id: 'chimera_horror', name: 'Химера-ужас', tier: 3 },
+            { id: 'bloody_executioner', name: 'Кровавый палач', tier: 4 },
+            { id: 'ancient_guardian', name: 'Древний хранитель', tier: 4 },
+            { id: 'fire_elemental', name: 'Огненный элементаль', tier: 4 },
+            { id: 'ice_giant', name: 'Ледяной великан', tier: 5 },
+            { id: 'lich_king', name: 'Король-личи', tier: 5 },
+            { id: 'darkness_spawn', name: 'Порождение тьмы', tier: 5 },
+            { id: 'robin_shadow', name: 'Тень Робин Гуда', tier: 6 }
+        ];
+        
+        bossNames.forEach((boss, index) => {
+            const chapter = index + 1;
+            const key = `boss_chapter_${chapter}`;
+            if (!this._definitions[key]) {
+                this._definitions[key] = {
+                    id: key,
+                    chapter: chapter,
+                    name: boss.name,
+                    description: `Победи босса ${boss.name}`,
+                    tasks: [
+                        {
+                            id: `boss_fight_${chapter}`,
+                            type: 'boss_kill',
+                            description: `Победить ${boss.name}`,
+                            monsterId: boss.id,
+                            target: 1,
+                            progress: 0,
+                            reward: { gold: 0, silver: 0, exp: 200 }
+                        }
+                    ],
+                    chapterReward: {
+                        gold: 0,
+                        silver: 0,
+                        exp: 400 + chapter * 100,
+                        trophy: true
+                    },
+                    requiredLevel: Math.max(1, chapter),
+                    isBossChapter: true,
+                    bossId: boss.id,
+                    bossName: boss.name,
+                    bossTier: boss.tier,
+                    isDungeonBoss: true
+                };
+            }
         });
     },
     
@@ -248,73 +381,214 @@ Sherwood.Quests = {
         return chapters.sort((a, b) => a.chapter - b.chapter);
     },
     
-    getActiveQuest() {
-        return this._activeQuest;
+    getBossChapters() {
+        return Object.values(this._definitions)
+            .filter(def => def.isDungeonBoss)
+            .sort((a, b) => a.chapter - b.chapter);
     },
     
-    startChapter(chapterId) {
-        const def = this._definitions[chapterId];
-        if (!def) return null;
+    isBossAvailable(bossId) {
+        const now = Date.now();
+        const cooldownMs = this._cooldownMinutes * 60 * 1000;
+        const elapsed = now - this._lastBattleTime;
+        return elapsed >= cooldownMs;
+    },
+    
+    getBossCooldownRemaining() {
+        const now = Date.now();
+        const cooldownMs = this._cooldownMinutes * 60 * 1000;
+        const elapsed = now - this._lastBattleTime;
+        return Math.max(0, cooldownMs - elapsed);
+    },
+    
+    _checkBossCooldown() {
+        this._lastBattleTime = Date.now();
+        const player = Sherwood.getPlayer();
+        if (player) {
+            player.lastQuestBattle = this._lastBattleTime;
+            Sherwood.saveGame();
+        }
+    },
+    
+    getBossReward(bossDef) {
+        // Базовые награды (не зависят от лимитов)
+        const baseGold = 100 + (bossDef.chapter || 0) * 10;
+        const baseSilver = 300 + (bossDef.chapter || 0) * 20;
+        const baseExp = 150 + (bossDef.chapter || 0) * 15;
+        
+        // Применяем дневные лимиты ТОЛЬКО к золоту и серебру
+        const limited = this._applyDailyLimits(baseGold, baseSilver);
+        
+        // Опыт даётся всегда
+        const exp = baseExp;
+        
+        // Шанс на предмет 15% (всегда)
+        const hasItem = Math.random() < 0.15;
+        let item = null;
+        if (hasItem) {
+            const items = Sherwood.EquipmentDB?.items || [];
+            const randomItem = items[Math.floor(Math.random() * items.length)];
+            if (randomItem) {
+                item = randomItem;
+            }
+        }
+        
+        return {
+            gold: limited.gold,
+            silver: limited.silver,
+            exp: exp,
+            item: item,
+            limited: (limited.gold < baseGold || limited.silver < baseSilver)
+        };
+    },
+    
+    startBossFight(bossId) {
+        // Проверка КД (30 минут между боями)
+        if (!this.isBossAvailable(bossId)) {
+            return { error: 'cooldown', remaining: this.getBossCooldownRemaining() };
+        }
+        
+        const def = Object.values(this._definitions).find(d => d.bossId === bossId && d.isDungeonBoss);
+        if (!def) return { error: 'not_found' };
         
         const player = Sherwood.getPlayer();
-        if (player.level < def.requiredLevel) return null;
+        if (player.level < def.requiredLevel) {
+            return { error: 'level_required', required: def.requiredLevel };
+        }
         
-        if (!this._quests[chapterId]) {
-            this._quests[chapterId] = {
+        if (!this._quests[def.id]) {
+            this._quests[def.id] = {
                 started: true,
                 completed: false,
                 tasksCompleted: 0,
                 tasks: {}
             };
+            def.tasks.forEach(task => {
+                if (!this._quests[def.id].tasks[task.id]) {
+                    this._quests[def.id].tasks[task.id] = {
+                        progress: 0,
+                        completed: false
+                    };
+                }
+            });
         }
         
+        this._activeQuest = { ...def, questState: this._quests[def.id] };
+        this._saveProgress();
+        
+        const battle = Sherwood.Combat.startPvE(bossId);
+        if (battle) {
+            battle.isBossFight = true;
+            battle.questId = def.id;
+            battle.bossDef = def;
+            
+            Sherwood.once('BATTLE_VICTORY', () => {
+                this._onBossDefeated(def.id, def);
+            });
+        }
+        
+        return { success: true, battle };
+    },
+    
+    _onBossDefeated(questId, def) {
+        const state = this._quests[questId];
+        if (!state) return;
+        
         def.tasks.forEach(task => {
-            if (!this._quests[chapterId].tasks[task.id]) {
-                this._quests[chapterId].tasks[task.id] = {
-                    progress: 0,
-                    completed: false
-                };
+            const taskState = state.tasks[task.id];
+            if (taskState) {
+                taskState.progress = task.target;
+                taskState.completed = true;
             }
         });
         
-        this._activeQuest = { ...def, questState: this._quests[chapterId] };
+        state.tasksCompleted = def.tasks.length;
+        state.completed = true;
+        
+        // Получаем награду с учётом лимитов
+        const reward = this.getBossReward(def);
+        
+        // Добавляем награды
+        if (reward.gold > 0) Sherwood.addResource('gold', reward.gold);
+        if (reward.silver > 0) Sherwood.addResource('silver', reward.silver);
+        if (reward.exp > 0) Sherwood.addExp(reward.exp);
+        
+        if (reward.item) {
+            const player = Sherwood.getPlayer();
+            player.inventory.push({...reward.item});
+            Sherwood.dispatch({ type: 'ITEM_ACQUIRED', payload: { item: reward.item } });
+        }
+        
+        // Запись в бестиарий
+        if (def.bossName && def.bossId) {
+            Sherwood.dispatch({
+                type: 'BOSS_DEFEATED',
+                payload: {
+                    bossId: def.bossId,
+                    bossName: def.bossName,
+                    chapter: def.chapter,
+                    tier: def.bossTier
+                }
+            });
+            
+            Sherwood.dispatch({
+                type: 'TAVERN_CHAPTER_UNLOCKED',
+                payload: { chapter: def.chapter }
+            });
+        }
+        
+        this._activeQuest = null;
         this._saveProgress();
         
-        return this._activeQuest;
+        Sherwood.dispatch({
+            type: 'BOSS_CHAPTER_COMPLETED',
+            payload: { questId, chapter: def, reward }
+        });
     },
     
     _onMonsterKilled(monsterData) {
         const monsterId = monsterData.monsterId || 
             Object.keys(Sherwood.Monsters).find(k => 
-                Sherwood.Monsters[k].name === monsterData.name
+                Sherwood.Monsters[k]?.name === monsterData.name
             );
         
         if (!monsterId) return;
         
+        const isBoss = Object.values(this._definitions).some(d => d.bossId === monsterId && d.isDungeonBoss);
+        if (isBoss) return;
+        
         Object.keys(this._quests).forEach(questId => {
             const def = this._definitions[questId];
-            if (!def) return;
+            if (!def || def.isDungeonBoss) return;
+            
+            const state = this._quests[questId];
+            if (!state || state.completed) return;
             
             def.tasks.forEach(task => {
-                const state = this._quests[questId]?.tasks?.[task.id];
-                if (!state || state.completed) return;
+                const taskState = state.tasks?.[task.id];
+                if (!taskState || taskState.completed) return;
                 
                 if (task.type === 'kill' && task.monsterId === monsterId) {
-                    state.progress++;
-                    if (state.progress >= task.target) {
-                        state.completed = true;
+                    taskState.progress++;
+                    if (taskState.progress >= task.target) {
+                        taskState.completed = true;
                         this._completeTask(questId, task);
                     }
                 }
                 
                 if (task.type === 'kill_any') {
-                    state.progress++;
-                    if (state.progress >= task.target) {
-                        state.completed = true;
+                    taskState.progress++;
+                    if (taskState.progress >= task.target) {
+                        taskState.completed = true;
                         this._completeTask(questId, task);
                     }
                 }
             });
+            
+            state.tasksCompleted = Object.values(state.tasks || {}).filter(t => t.completed).length;
+            if (state.tasksCompleted >= def.tasks.length) {
+                this._completeChapter(questId, def);
+            }
         });
         
         this._saveProgress();
@@ -325,20 +599,28 @@ Sherwood.Quests = {
         
         Object.keys(this._quests).forEach(questId => {
             const def = this._definitions[questId];
-            if (!def) return;
+            if (!def || def.isDungeonBoss) return;
+            
+            const state = this._quests[questId];
+            if (!state || state.completed) return;
             
             def.tasks.forEach(task => {
-                const state = this._quests[questId]?.tasks?.[task.id];
-                if (!state || state.completed) return;
+                const taskState = state.tasks?.[task.id];
+                if (!taskState || taskState.completed) return;
                 
                 if (task.type === 'collect') {
-                    state.progress = player.resources[task.resource] || 0;
-                    if (state.progress >= task.target) {
-                        state.completed = true;
+                    taskState.progress = player.resources[task.resource] || 0;
+                    if (taskState.progress >= task.target) {
+                        taskState.completed = true;
                         this._completeTask(questId, task);
                     }
                 }
             });
+            
+            state.tasksCompleted = Object.values(state.tasks || {}).filter(t => t.completed).length;
+            if (state.tasksCompleted >= def.tasks.length) {
+                this._completeChapter(questId, def);
+            }
         });
         
         this._saveProgress();
@@ -347,17 +629,25 @@ Sherwood.Quests = {
     _checkEquipQuests(part) {
         Object.keys(this._quests).forEach(questId => {
             const def = this._definitions[questId];
-            if (!def) return;
+            if (!def || def.isDungeonBoss) return;
+            
+            const state = this._quests[questId];
+            if (!state || state.completed) return;
             
             def.tasks.forEach(task => {
-                const state = this._quests[questId]?.tasks?.[task.id];
-                if (!state || state.completed) return;
+                const taskState = state.tasks?.[task.id];
+                if (!taskState || taskState.completed) return;
                 
                 if (task.type === 'equip' && task.part === part) {
-                    state.completed = true;
+                    taskState.completed = true;
                     this._completeTask(questId, task);
                 }
             });
+            
+            state.tasksCompleted = Object.values(state.tasks || {}).filter(t => t.completed).length;
+            if (state.tasksCompleted >= def.tasks.length) {
+                this._completeChapter(questId, def);
+            }
         });
         
         this._saveProgress();
@@ -365,26 +655,25 @@ Sherwood.Quests = {
     
     _completeTask(questId, task) {
         if (task.reward) {
-            if (task.reward.gold) Sherwood.addResource('gold', task.reward.gold);
-            if (task.reward.silver) Sherwood.addResource('silver', task.reward.silver);
+            // Для наград задач тоже применяем лимиты
+            if (task.reward.gold || task.reward.silver) {
+                const limited = this._applyDailyLimits(
+                    task.reward.gold || 0, 
+                    task.reward.silver || 0
+                );
+                if (limited.gold > 0) Sherwood.addResource('gold', limited.gold);
+                if (limited.silver > 0) Sherwood.addResource('silver', limited.silver);
+            }
             if (task.reward.exp) Sherwood.addExp(task.reward.exp);
             if (task.reward.trophies) Sherwood.addResource('trophies', task.reward.trophies);
             if (task.reward.item) {
-                const item = Sherwood.EquipmentDB.findById(task.reward.item);
+                const item = Sherwood.EquipmentDB?.findById?.(task.reward.item);
                 if (item) {
                     const player = Sherwood.getPlayer();
                     player.inventory.push({...item});
                     Sherwood.dispatch({ type: 'ITEM_ACQUIRED', payload: { item } });
                 }
             }
-        }
-        
-        const def = this._definitions[questId];
-        const state = this._quests[questId];
-        state.tasksCompleted = Object.values(state.tasks).filter(t => t.completed).length;
-        
-        if (state.tasksCompleted >= def.tasks.length) {
-            this._completeChapter(questId, def);
         }
         
         Sherwood.dispatch({
@@ -398,17 +687,21 @@ Sherwood.Quests = {
         state.completed = true;
         
         if (def.chapterReward) {
-            if (def.chapterReward.gold) Sherwood.addResource('gold', def.chapterReward.gold);
-            if (def.chapterReward.silver) Sherwood.addResource('silver', def.chapterReward.silver);
-            if (def.chapterReward.exp) Sherwood.addExp(def.chapterReward.exp);
-            if (def.chapterReward.item) {
-                const item = Sherwood.EquipmentDB.findById(def.chapterReward.item);
+            const reward = def.chapterReward;
+            if (reward.gold || reward.silver) {
+                const limited = this._applyDailyLimits(reward.gold || 0, reward.silver || 0);
+                if (limited.gold > 0) Sherwood.addResource('gold', limited.gold);
+                if (limited.silver > 0) Sherwood.addResource('silver', limited.silver);
+            }
+            if (reward.exp) Sherwood.addExp(reward.exp);
+            if (reward.item) {
+                const item = Sherwood.EquipmentDB?.findById?.(reward.item);
                 if (item) {
                     const player = Sherwood.getPlayer();
                     player.inventory.push({...item});
                 }
             }
-            if (def.chapterReward.trophy) {
+            if (reward.trophy) {
                 Sherwood.addResource('trophies', 10);
             }
         }
@@ -426,7 +719,44 @@ Sherwood.Quests = {
         const player = Sherwood.getPlayer();
         if (player) {
             player.questProgress = this._quests;
+            player.lastQuestBattle = this._lastBattleTime;
             Sherwood.saveGame();
         }
+    },
+    
+    getBossCooldownText() {
+        const remaining = this.getBossCooldownRemaining();
+        if (remaining <= 0) return 'Доступно!';
+        const minutes = Math.floor(remaining / 60000);
+        const seconds = Math.floor((remaining % 60000) / 1000);
+        return `${minutes}:${String(seconds).padStart(2, '0')}`;
+    },
+    
+    canFightBoss(bossId) {
+        const def = Object.values(this._definitions).find(d => d.bossId === bossId && d.isDungeonBoss);
+        if (!def) return false;
+        const player = Sherwood.getPlayer();
+        if (!player || player.level < def.requiredLevel) return false;
+        if (this._quests[def.id]?.completed) return false;
+        if (!this.isBossAvailable(bossId)) return false;
+        return true; // Бой доступен всегда, награда режется лимитами
+    },
+    
+    getDailyLimits() {
+        return {
+            gold: {
+                limit: this._dailyGoldLimit,
+                earned: this._dailyGoldEarned,
+                remaining: Math.max(0, this._dailyGoldLimit - this._dailyGoldEarned)
+            },
+            silver: {
+                limit: this._dailySilverLimit,
+                earned: this._dailySilverEarned,
+                remaining: Math.max(0, this._dailySilverLimit - this._dailySilverEarned)
+            }
+        };
     }
 };
+
+// Инициализация босс-глав
+Sherwood.Quests._generateBossChapters();
