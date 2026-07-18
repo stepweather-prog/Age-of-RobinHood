@@ -280,15 +280,21 @@ Sherwood.UI = {
         const bottomSlots = ['belt', 'amulet', 'ring'];
         
         function renderSlot(key, top, left) {
-            const item = p.equipment[key];
-            const hasItem = item !== null;
-            const gradeColor = hasItem ? ((Sherwood.Models && Sherwood.Models.GradeColors && Sherwood.Models.GradeColors[item.grade]) || '#9d9d9d') : '#444';
-            return `<div onclick="Sherwood.UI._onEquipSlotClick('${key}')" style="position:absolute;top:${top}%;left:${left}%;transform:translate(-50%,-50%);cursor:pointer;text-align:center;width:50px;height:50px">
-                <div style="width:50px;height:50px;border-radius:8px;background-image:url('${slotFrames[key]||''}');background-size:cover;background-position:center;border:2px solid ${gradeColor};box-shadow:0 0 6px ${hasItem?gradeColor:'transparent'}">
-                    ${hasItem ? `<div style="position:absolute;bottom:2px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.8);color:#fff;font-size:0.55em;padding:1px 4px;border-radius:3px;white-space:nowrap">${item.name.substring(0,8)}</div>` : ''}
-                </div>
-            </div>`;
-        }
+    const item = p.equipment[key];
+    const hasItem = item !== null && item !== undefined;
+    // Безопасное получение grade
+    const grade = hasItem ? (item.grade || 'common') : 'common';
+    const gradeColor = hasItem ? 
+        ((Sherwood.Models && Sherwood.Models.GradeColors && Sherwood.Models.GradeColors[grade]) || '#9d9d9d') : 
+        '#444';
+    const itemName = hasItem ? (item.name || 'Предмет') : '';
+    
+    return `<div onclick="Sherwood.UI._onEquipSlotClick('${key}')" style="position:absolute;top:${top}%;left:${left}%;transform:translate(-50%,-50%);cursor:pointer;text-align:center;width:50px;height:50px">
+        <div style="width:50px;height:50px;border-radius:8px;background-image:url('${slotFrames[key]||''}');background-size:cover;background-position:center;border:2px solid ${gradeColor};box-shadow:0 0 6px ${hasItem?gradeColor:'transparent'}">
+            ${hasItem ? `<div style="position:absolute;bottom:2px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.8);color:#fff;font-size:0.55em;padding:1px 4px;border-radius:3px;white-space:nowrap">${itemName.substring(0,8)}</div>` : ''}
+        </div>
+    </div>`;
+}
         
         let slotsHtml = '';
         leftSlots.forEach((key, i) => { slotsHtml += renderSlot(key, 35 + i * 18, 12); });
