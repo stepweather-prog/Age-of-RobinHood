@@ -129,7 +129,7 @@ Sherwood.UI = {
         function renderSlot(key, top, left) {
             const item = p.equipment[key];
             const hasItem = item !== null;
-            const gradeColor = hasItem ? (Sherwood.Models?.GradeColors?.[item.grade] || '#9d9d9d') : '#444';
+            const gradeColor = hasItem ? ((Sherwood.Models && Sherwood.Models.GradeColors && Sherwood.Models.GradeColors[item.grade]) || '#9d9d9d') : '#444';
             return `<div onclick="Sherwood.UI._onEquipSlotClick('${key}')" style="position:absolute;top:${top}%;left:${left}%;transform:translate(-50%,-50%);cursor:pointer;text-align:center;width:50px;height:50px"><div style="width:50px;height:50px;border-radius:8px;background-image:url('${slotFrames[key]||''}');background-size:cover;background-position:center;border:2px solid ${gradeColor};box-shadow:0 0 6px ${hasItem?gradeColor:'transparent'}">${hasItem?`<div style="position:absolute;bottom:2px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.8);color:#fff;font-size:0.55em;padding:1px 4px;border-radius:3px;white-space:nowrap">${item.name.substring(0,8)}</div>`:''}</div></div>`;
         }
         
@@ -142,7 +142,7 @@ Sherwood.UI = {
         let inventoryHtml = p.inventory.length === 0 
             ? '<div style="color:#aaa;text-align:center;padding:10px;">Пусто</div>'
             : p.inventory.map((it, i) => {
-                const gc = Sherwood.Models?.GradeColors?.[it.grade] || '#9d9d9d';
+                const gc = (Sherwood.Models && Sherwood.Models.GradeColors && Sherwood.Models.GradeColors[it.grade]) || '#9d9d9d';
                 return `<div style="background:rgba(0,0,0,0.7);border:1px solid rgba(255,255,255,0.15);border-left:3px solid ${gc};border-radius:8px;padding:8px;margin-bottom:4px;display:flex;align-items:center;gap:6px">
                     <span style="font-size:1em">📦</span>
                     <div style="flex:1"><div style="color:#fff;font-size:0.8em">${it.name}</div><div style="font-size:0.6em;color:${gc}">${it.grade?.toUpperCase()} | Ур.${it.level||1}</div></div>
