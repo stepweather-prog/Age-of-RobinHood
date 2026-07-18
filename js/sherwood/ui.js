@@ -9,23 +9,23 @@ Sherwood.UI = {
     _currentScreen: null, _container: null, _currentMusic: null, _currentMusicKey: null, _sounds: {}, _soundEnabled: true, _upgradeData: [],
     
     _bg: {
-        main: 'assets/icons/bg_main.png',
-        tavern: 'assets/lor/backgrounds/tavern.jpeg',
-        blackmarket: 'assets/lor/backgrounds/market.jpeg',
-        profile: 'assets/lor/backgrounds/character_page.jpg',
-        bestiary: 'assets/lor/backgrounds/bestiary.jpeg',
-        quests: 'assets/lor/backgrounds/background_of_s_kills.jpeg',
-        training: 'assets/lor/backgrounds/training_background.jpeg',
-        blacksmith: 'assets/lor/backgrounds/forge.jpeg',
-        skills: 'assets/lor/backgrounds/background_of_s_kills.jpeg',
-        dungeon_select: 'assets/lor/backgrounds/thick.jpeg',
-        dungeon_forest: 'assets/lor/backgrounds/subway_battle1.jpg',
-        dungeon_swamp: 'assets/lor/backgrounds/subway_battle2.jpg',
-        dungeon_cave: 'assets/lor/backgrounds/subway_battle3.jpg',
-        dungeon_fight: 'assets/lor/backgrounds/subway_battle2.jpg',
-        pvp_arena: 'assets/lor/backgrounds/arena.jpeg',
-        raid: 'assets/lor/backgrounds/subway_battle3.jpg'
-    },
+    main: 'assets/icons/bg_main.png',
+    tavern: 'assets/lor/backgrounds/tavern.jpeg',
+    blackmarket: 'assets/lor/backgrounds/market.jpeg',
+    profile: 'assets/lor/backgrounds/character_page.jpeg',
+    bestiary: 'assets/lor/backgrounds/bestiary.jpeg',
+    quests: 'assets/lor/backgrounds/background_of_skills.jpeg',
+    training: 'assets/lor/backgrounds/training_background.jpeg',
+    blacksmith: 'assets/lor/backgrounds/Forge.jpeg',
+    skills: 'assets/lor/backgrounds/background_of_skills.jpeg',
+    dungeon_select: 'assets/lor/backgrounds/thick.jpeg',
+    dungeon_forest: 'assets/lor/backgrounds/subway_battle1.jpeg',
+    dungeon_swamp: 'assets/lor/backgrounds/subway_battle2.jpeg',
+    dungeon_cave: 'assets/lor/backgrounds/subway_battle3.jpeg',
+    dungeon_fight: 'assets/lor/backgrounds/subway_battle2.jpeg',
+    pvp_arena: 'assets/lor/backgrounds/arena.jpeg',
+    raid: 'assets/lor/backgrounds/subway_battle3.jpeg'
+},
     
     init() {
         this._container = document.getElementById('game-container');
