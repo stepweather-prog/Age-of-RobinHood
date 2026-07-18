@@ -2,25 +2,39 @@ Sherwood.Dungeon = {
     _dungeon: null,
     _playerProgress: null,
     
-    // Данные подземелий
     DUNGEONS: {
         forest: {
             name: 'Шервудский лес',
             icon: '🌲',
-            monsters: ['swamp_ghoul_1', 'cursed_wolf_1', 'swamp_kikimora_1', 'leshy_3'],
-            boss: 'leshy_3'
+            monsters: {
+                1: 'Forest Likho1.png',
+                2: 'Forest Likho2.png',
+                3: 'Forest Likho3.png'
+            },
+            boss: 'Leshy (Forest Spirit)3.png',
+            monstersList: ['Forest Likho1.png', 'Forest Likho2.png', 'Forest Likho3.png']
         },
         swamp: {
             name: 'Болото',
             icon: '🌿',
-            monsters: ['swamp_ghoul_2', 'swamp_kikimora_1', 'devil_toad_1', 'insatiable_triton_3'],
-            boss: 'insatiable_triton_3'
+            monsters: {
+                1: 'Swamp Ghoul1.png',
+                2: 'Swamp Ghoul2.png',
+                3: 'Swamp Ghoul3.png'
+            },
+            boss: 'Insatiable Triton3.png',
+            monstersList: ['Swamp Ghoul1.png', 'Swamp Ghoul2.png', 'Swamp Ghoul3.png']
         },
         cave: {
             name: 'Пещера',
             icon: '🪨',
-            monsters: ['chitinous_swarm_guard_1', 'blighted_root_monstrosity_1', 'sherwood_scavenger_3', 'sherwood_abomination'],
-            boss: 'sherwood_abomination'
+            monsters: {
+                1: 'Bark-Beetle Troglodyte1.png',
+                2: 'Bark-Beetle Troglodyte2.png',
+                3: 'Bark-Beetle Troglodyte3.png'
+            },
+            boss: 'The_Sherwood_Abomination.png',
+            monstersList: ['Bark-Beetle Troglodyte1.png', 'Bark-Beetle Troglodyte2.png', 'Bark-Beetle Troglodyte3.png']
         }
     },
     
@@ -54,8 +68,7 @@ Sherwood.Dungeon = {
                 ...data,
                 level: progress.level,
                 skulls: progress.skulls,
-                maxLevel: 10,
-                unlocked: true // все открыты с начала
+                maxLevel: 10
             };
         }
         return result;
@@ -65,13 +78,13 @@ Sherwood.Dungeon = {
         const dungeon = this.DUNGEONS[dungeonId];
         if (!dungeon) return null;
         const progress = this._playerProgress[dungeonId];
-        if (level > progress.level + 1) return null; // нельзя открыть дальше чем на 1 вперед
+        if (level > progress.level + 1) return null;
         
-        // Монстры для уровня
         const monsterCount = 3 + Math.floor(level / 3);
         const monsters = [];
+        const pool = dungeon.monstersList;
         for (let i = 0; i < monsterCount; i++) {
-            const m = dungeon.monsters[Math.floor(Math.random() * dungeon.monsters.length)];
+            const m = pool[Math.floor(Math.random() * pool.length)];
             monsters.push(m);
         }
         
@@ -89,12 +102,10 @@ Sherwood.Dungeon = {
         const progress = this._playerProgress[dungeonId];
         if (!progress) return;
         
-        // Обновляем черепа
         if (skullsEarned > progress.skulls) {
             progress.skulls = skullsEarned;
         }
         
-        // Открываем следующий уровень если набрано 2 черепа
         if (skullsEarned >= 2 && level >= progress.level) {
             progress.level = Math.min(level + 1, 10);
         }
@@ -102,8 +113,7 @@ Sherwood.Dungeon = {
         this._saveProgress();
     },
     
-    getSkullConfig(level) {
-        // 5 уровней сложности (1-5 черепов)
+    getSkullConfig(skulls) {
         return {
             1: { enemyMultiplier: 0.8, rewardMultiplier: 0.6, label: '⭐' },
             2: { enemyMultiplier: 1.0, rewardMultiplier: 1.0, label: '⭐⭐' },
@@ -160,7 +170,6 @@ Sherwood.Dungeon = {
             );
         }
         
-        // Старт
         const startRoom = rooms[0];
         const startX = startRoom.x + Math.floor(startRoom.w/2);
         const startY = startRoom.y + Math.floor(startRoom.h/2);
@@ -168,31 +177,27 @@ Sherwood.Dungeon = {
         grid[startY][startX].explored = true;
         grid[startY][startX].visible = true;
         
-        // Выход
         const exitRoom = rooms[rooms.length - 1];
         const exitX = exitRoom.x + Math.floor(exitRoom.w/2);
         const exitY = exitRoom.y + Math.floor(exitRoom.h/2);
         grid[exitY][exitX].type = 'exit';
         grid[exitY][exitX].walkable = true;
         
-        // Монстры
         const enemyCount = Math.floor((3 + level) * config.enemyMultiplier);
         this._placeEnemies(grid, rooms, enemyCount, levelData.monsters);
         
-        // Босс на 10 уровне
         if (level === 10) {
             const bossRoom = rooms[rooms.length - 2] || rooms[0];
             const bx = bossRoom.x + Math.floor(bossRoom.w/2);
             const by = bossRoom.y + Math.floor(bossRoom.h/2);
             grid[by][bx].type = 'enemy';
             grid[by][bx].monsterId = levelData.boss;
-            grid[by][bx].monsterIcon = Sherwood.Monsters[levelData.boss]?.icon || '';
-            grid[by][bx].monsterName = Sherwood.Monsters[levelData.boss]?.name || 'Босс';
+            grid[by][bx].monsterIcon = 'assets/monsters/' + levelData.boss;
+            grid[by][bx].monsterName = levelData.boss.replace('.png', '').replace(/_/g, ' ');
             grid[by][bx].walkable = false;
             grid[by][bx].isBoss = true;
         }
         
-        // Сундуки
         const chestCount = Math.floor((2 + level/3) * config.rewardMultiplier);
         this._placeChests(grid, rooms, Math.min(chestCount, 5));
         
@@ -271,12 +276,11 @@ Sherwood.Dungeon = {
             const idx = Math.floor(Math.random() * cells.length);
             const cell = cells.splice(idx, 1)[0];
             const monsterId = monsterPool[Math.floor(Math.random() * monsterPool.length)];
-            const monster = Sherwood.Monsters[monsterId];
-            if (grid[cell.y] && grid[cell.y][cell.x] && monster) {
+            if (grid[cell.y] && grid[cell.y][cell.x]) {
                 grid[cell.y][cell.x].type = 'enemy';
                 grid[cell.y][cell.x].monsterId = monsterId;
-                grid[cell.y][cell.x].monsterIcon = monster.icon || '';
-                grid[cell.y][cell.x].monsterName = monster.name || 'Монстр';
+                grid[cell.y][cell.x].monsterIcon = 'assets/monsters/' + monsterId;
+                grid[cell.y][cell.x].monsterName = monsterId.replace('.png', '').replace(/_/g, ' ');
                 grid[cell.y][cell.x].walkable = false;
                 placed++;
             }
