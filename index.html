@@ -49,12 +49,12 @@
             pointer-events: none;
         }
 
-        /* ===== РАЗДЕЛИТЕЛИ — ШИРЕ ===== */
+        /* ===== РАЗДЕЛИТЕЛИ — ШИРЕ, ВО ВЕСЬ РОСТ ===== */
         .divider-left {
             position: fixed;
             left: calc(50% - 210px - 12% + 12% - 8px);
             top: 0;
-            width: 16px;
+            width: 24px;
             height: 100%;
             background: url('assets/interface/vertical_screen_divider.png') center/contain no-repeat;
             background-size: cover;
@@ -65,7 +65,7 @@
             position: fixed;
             right: calc(50% - 210px - 12% + 12% - 8px);
             top: 0;
-            width: 16px;
+            width: 24px;
             height: 100%;
             background: url('assets/interface/vertical_screen_divider.png') center/contain no-repeat;
             background-size: cover;
@@ -126,17 +126,17 @@
         }
         .hero-frame .video-bg {
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: -10%;
+            left: -10%;
+            width: 120%;
+            height: 120%;
             background: url('assets/animation/animation_frame_hero.webm') center/contain no-repeat;
             background-size: contain;
             z-index: 0;
             pointer-events: none;
-            border: 2px solid rgba(201, 168, 76, 0.3);
+            border: 3px solid rgba(255, 215, 0, 0.5);
             border-radius: 12px;
-            box-shadow: 0 0 30px rgba(201, 168, 76, 0.15);
+            background-color: rgba(20, 20, 30, 0.2);
         }
         .hero-frame img {
             position: relative;
@@ -269,7 +269,7 @@
             letter-spacing: 1px;
         }
 
-        /* ===== КНОПКИ — ПОДНЯТЫ ВЫШЕ ===== */
+        /* ===== КНОПКИ ===== */
         .left-buttons,
         .right-buttons {
             position: absolute;
@@ -329,7 +329,7 @@
             transform: scale(0.9);
         }
 
-        /* ===== НИЖНИЕ СТАТЫ ===== */
+        /* ===== НИЖНИЕ СТАТЫ — В САМЫЙ НИЗ ===== */
         .bottom-stats {
             position: absolute;
             bottom: 0%;
@@ -340,7 +340,7 @@
             justify-content: space-between;
             gap: 20px;
             pointer-events: none;
-            padding-bottom: 6px;
+            padding-bottom: 0px;
         }
         .bottom-stats .stat-block {
             width: 46%;
