@@ -7,7 +7,6 @@
     <link rel="icon" type="image/png" href="assets/interface/logo.png">
     <link rel="manifest" href="manifest.json">
     <style>
-        /* ===== RESET ===== */
         * {
             margin: 0;
             padding: 0;
@@ -38,7 +37,7 @@
             box-shadow: 0 0 60px rgba(0, 0, 0, 0.9);
         }
 
-        /* ===== ФОН (100% ширины) ===== */
+        /* ===== ФОН ===== */
         .bg-layer {
             position: absolute;
             top: 0;
@@ -49,12 +48,12 @@
             z-index: 0;
         }
 
-        /* ===== СТАТУИ (СНАРУЖИ, ЗА ГРАНИЦАМИ) ===== */
+        /* ===== СТАТУИ (ВНУТРИ, ОБРАМЛЯЮТ) ===== */
         .statue-left {
             position: absolute;
-            left: -10%;
+            left: 0;
             top: 0;
-            width: 30%;
+            width: 18%;
             height: 100%;
             background: url('assets/backgrounds/left_statue_of_the_main_screen.png') center/contain no-repeat;
             z-index: 2;
@@ -63,39 +62,39 @@
 
         .statue-right {
             position: absolute;
-            right: -10%;
+            right: 0;
             top: 0;
-            width: 30%;
+            width: 18%;
             height: 100%;
             background: url('assets/backgrounds/right_statue_of_the_main_screen.png') center/contain no-repeat;
             z-index: 2;
             pointer-events: none;
         }
 
-        /* ===== ВЕРТИКАЛЬНЫЕ РАЗДЕЛИТЕЛИ (ТВОИ) ===== */
+        /* ===== ВЕРТИКАЛЬНЫЙ РАЗДЕЛИТЕЛЬ (МЕЖДУ СТАТУЕЙ И ЭКРАНОМ) ===== */
         .divider-left {
             position: absolute;
-            left: 14%;
+            left: 17%;
             top: 0;
-            width: 8px;
+            width: 4px;
             height: 100%;
             background: url('assets/interface/vertical_screen_divider.png') center/cover no-repeat;
-            z-index: 1;
+            z-index: 3;
             pointer-events: none;
         }
 
         .divider-right {
             position: absolute;
-            right: 14%;
+            right: 17%;
             top: 0;
-            width: 8px;
+            width: 4px;
             height: 100%;
             background: url('assets/interface/vertical_screen_divider.png') center/cover no-repeat;
-            z-index: 1;
+            z-index: 3;
             pointer-events: none;
         }
 
-        /* ===== ЛЕСТНИЦА С АРКОЙ (ПОДНЯТА ВЫШЕ) ===== */
+        /* ===== ЛЕСТНИЦА С АРКОЙ ===== */
         .arch-layer {
             position: absolute;
             bottom: 28%;
@@ -104,7 +103,7 @@
             width: 50%;
             height: 40%;
             background: url('assets/interface/staircase_with_an_arch.png') bottom/contain no-repeat;
-            z-index: 3;
+            z-index: 4;
             pointer-events: none;
         }
 
@@ -116,7 +115,7 @@
             transform: translateX(-50%);
             width: 26%;
             height: 28%;
-            z-index: 3;
+            z-index: 5;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -129,15 +128,92 @@
             height: 80%;
             object-fit: contain;
             filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.15));
-            z-index: 4;
+        }
+
+        /* ===== ЭКРАН ЗАГРУЗКИ ===== */
+        .loading-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 50;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: rgba(10, 10, 15, 0.92);
+            backdrop-filter: blur(4px);
+            transition: opacity 0.6s ease;
+        }
+
+        .loading-screen.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .loading-screen .logo {
+            width: 60%;
+            max-width: 180px;
+            height: auto;
+            margin-bottom: 40px;
+            filter: drop-shadow(0 0 40px rgba(201, 168, 76, 0.2));
+        }
+
+        .loading-screen .play-btn {
+            background: linear-gradient(135deg, #c9a040, #8b6914);
+            border: none;
+            border-radius: 50px;
+            padding: 14px 60px;
+            color: #000;
+            font-family: 'Georgia', serif;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 0 30px rgba(201, 168, 76, 0.3);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .loading-screen .play-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 50px rgba(201, 168, 76, 0.5);
+        }
+
+        .loading-screen .play-btn:active {
+            transform: scale(0.95);
+        }
+
+        .loading-screen .version {
+            position: absolute;
+            bottom: 20px;
+            color: #555;
+            font-size: 0.6em;
+            letter-spacing: 1px;
+        }
+
+        /* ===== ОСНОВНОЙ ИНТЕРФЕЙС (СКРЫТ ПОКА НЕ НАЖАТ PLAY) ===== */
+        .main-interface {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            display: none;
+        }
+
+        .main-interface.active {
+            display: block;
         }
 
         /* ===== ВЕРХНЯЯ ПАНЕЛЬ ===== */
         .top-panel {
             position: absolute;
             top: 3%;
-            left: 18%;
-            right: 18%;
+            left: 20%;
+            right: 20%;
             z-index: 10;
             display: flex;
             justify-content: space-between;
@@ -201,7 +277,7 @@
             display: flex;
             flex-direction: column;
             gap: 3px;
-            width: 13%;
+            width: 14%;
         }
 
         .left-buttons .btn {
@@ -243,7 +319,7 @@
             display: flex;
             flex-direction: column;
             gap: 3px;
-            width: 13%;
+            width: 14%;
         }
 
         .right-buttons .btn {
@@ -276,12 +352,12 @@
             transform: scale(0.9);
         }
 
-        /* ===== НИЖНИЕ СТАТЫ (С ТВОИМИ ИКОНКАМИ) ===== */
+        /* ===== НИЖНИЕ СТАТЫ ===== */
         .bottom-stats {
             position: absolute;
             bottom: 3%;
-            left: 18%;
-            right: 18%;
+            left: 20%;
+            right: 20%;
             z-index: 10;
             display: flex;
             justify-content: space-between;
@@ -390,133 +466,134 @@
             .top-panel .exp-bar .level-text { font-size: 0.45em; }
             .bottom-stats .stat-block .stat-values { font-size: 0.45em; gap: 6px; }
             .bottom-stats .stat-block .stat-icons img { width: 14px; height: 14px; }
+            .loading-screen .play-btn { padding: 12px 40px; font-size: 1em; }
         }
     </style>
 </head>
 <body>
     <div id="game-container">
 
-        <!-- ФОН -->
+        <!-- ===== ФОН ===== -->
         <div class="bg-layer"></div>
 
-        <!-- СТАТУИ (СНАРУЖИ) -->
+        <!-- ===== СТАТУИ (ВНУТРИ) ===== -->
         <div class="statue-left"></div>
         <div class="statue-right"></div>
 
-        <!-- ВЕРТИКАЛЬНЫЕ РАЗДЕЛИТЕЛИ (ТВОИ) -->
+        <!-- ===== ВЕРТИКАЛЬНЫЕ РАЗДЕЛИТЕЛИ ===== -->
         <div class="divider-left"></div>
         <div class="divider-right"></div>
 
-        <!-- ЛЕСТНИЦА С АРКОЙ (ПОДНЯТА) -->
+        <!-- ===== ЛЕСТНИЦА С АРКОЙ ===== -->
         <div class="arch-layer"></div>
 
-        <!-- ВИДЕО-РАМКА ЗА ГЕРОЕМ -->
+        <!-- ===== ВИДЕО-РАМКА ЗА ГЕРОЕМ ===== -->
         <div class="hero-frame">
             <img src="assets/hero_skins/skin_1_basic.png" alt="Герой" id="hero-skin">
         </div>
 
-        <!-- ВЕРХНЯЯ ПАНЕЛЬ -->
-        <div class="top-panel">
-            <div class="resource">
-                <img src="assets/interface/gold_plate.png" alt="Золото">
-                <span id="gold-display">0</span>
-            </div>
-            <div class="exp-bar">
-                <img src="assets/interface/hero_experience_scale.png" alt="Опыт">
-                <div class="level-text">УРОВЕНЬ <span id="level-display">1</span></div>
-            </div>
-            <div class="resource silver">
-                <img src="assets/interface/silver_plaque.png" alt="Серебро">
-                <span id="silver-display">0</span>
-            </div>
+        <!-- ===== ЭКРАН ЗАГРУЗКИ ===== -->
+        <div class="loading-screen" id="loadingScreen">
+            <img src="assets/interface/logo.png" alt="Sherwood RPG" class="logo">
+            <button class="play-btn" id="playBtn">▶ ИГРАТЬ</button>
+            <span class="version">v3.1</span>
         </div>
 
-        <!-- ЛЕВЫЕ КНОПКИ -->
-        <div class="left-buttons">
-            <div class="btn" data-action="quest"><img src="assets/all_buttons/play.png" alt="Квест"></div>
-            <div class="btn" data-action="subway"><img src="assets/all_buttons/subway.png" alt="Подземка"></div>
-            <div class="btn" data-action="raid"><img src="assets/all_buttons/raid.png" alt="Рейд"></div>
-            <div class="btn" data-action="portal"><img src="assets/all_buttons/portal.png" alt="Портал"></div>
-            <div class="btn" data-action="arena"><img src="assets/all_buttons/arena.png" alt="Арена"></div>
-            <div class="btn" data-action="tavern"><img src="assets/all_buttons/tavern.png" alt="Таверна"></div>
-            <div class="btn" data-action="settings"><img src="assets/all_buttons/settings.png" alt="Настройки"></div>
-        </div>
+        <!-- ===== ОСНОВНОЙ ИНТЕРФЕЙС ===== -->
+        <div class="main-interface" id="mainInterface">
 
-        <!-- ПРАВЫЕ КНОПКИ -->
-        <div class="right-buttons">
-            <div class="btn" data-action="daily"><img src="assets/all_buttons/daily_quests.png" alt="Ежедневные"></div>
-            <div class="btn" data-action="training"><img src="assets/all_buttons/training.png" alt="Тренировка"></div>
-            <div class="btn" data-action="forge"><img src="assets/all_buttons/forge.png" alt="Кузница"></div>
-            <div class="btn" data-action="bag"><img src="assets/all_buttons/hero_bag.png" alt="Сумка"></div>
-            <div class="btn" data-action="market"><img src="assets/all_buttons/sherwood_market.png" alt="Рынок"></div>
-            <div class="btn" data-action="bestiary"><img src="assets/all_buttons/bestiary.png" alt="Бестиарий"></div>
-            <div class="btn" data-action="profile"><img src="assets/all_buttons/player_profile.png" alt="Профиль"></div>
-        </div>
-
-        <!-- НИЖНИЕ СТАТЫ (С ТВОИМИ ИКОНКАМИ) -->
-        <div class="bottom-stats">
-            <div class="stat-block">
-                <div class="stat-icons">
-                    <img src="assets/interface/damage_and_armor_stat_board.png" alt="Урон/Защита">
+            <!-- ВЕРХНЯЯ ПАНЕЛЬ -->
+            <div class="top-panel">
+                <div class="resource">
+                    <img src="assets/interface/gold_plate.png" alt="Золото">
+                    <span id="gold-display">0</span>
                 </div>
-                <div class="stat-values">
-                    <span class="attack">⚔️ 0</span>
-                    <span class="defense">🛡️ 0</span>
+                <div class="exp-bar">
+                    <img src="assets/interface/hero_experience_scale.png" alt="Опыт">
+                    <div class="level-text">УРОВЕНЬ <span id="level-display">1</span></div>
+                </div>
+                <div class="resource silver">
+                    <img src="assets/interface/silver_plaque.png" alt="Серебро">
+                    <span id="silver-display">0</span>
                 </div>
             </div>
-            <div class="stat-block">
-                <div class="stat-icons">
-                    <img src="assets/interface/stat_and_health_board.png" alt="Ловкость/Здоровье">
+
+            <!-- ЛЕВЫЕ КНОПКИ -->
+            <div class="left-buttons">
+                <div class="btn" data-action="quest"><img src="assets/all_buttons/play.png" alt="Квест"></div>
+                <div class="btn" data-action="subway"><img src="assets/all_buttons/subway.png" alt="Подземка"></div>
+                <div class="btn" data-action="raid"><img src="assets/all_buttons/raid.png" alt="Рейд"></div>
+                <div class="btn" data-action="portal"><img src="assets/all_buttons/portal.png" alt="Портал"></div>
+                <div class="btn" data-action="arena"><img src="assets/all_buttons/arena.png" alt="Арена"></div>
+                <div class="btn" data-action="tavern"><img src="assets/all_buttons/tavern.png" alt="Таверна"></div>
+                <div class="btn" data-action="settings"><img src="assets/all_buttons/settings.png" alt="Настройки"></div>
+            </div>
+
+            <!-- ПРАВЫЕ КНОПКИ -->
+            <div class="right-buttons">
+                <div class="btn" data-action="daily"><img src="assets/all_buttons/daily_quests.png" alt="Ежедневные"></div>
+                <div class="btn" data-action="training"><img src="assets/all_buttons/training.png" alt="Тренировка"></div>
+                <div class="btn" data-action="forge"><img src="assets/all_buttons/forge.png" alt="Кузница"></div>
+                <div class="btn" data-action="bag"><img src="assets/all_buttons/hero_bag.png" alt="Сумка"></div>
+                <div class="btn" data-action="market"><img src="assets/all_buttons/sherwood_market.png" alt="Рынок"></div>
+                <div class="btn" data-action="bestiary"><img src="assets/all_buttons/bestiary.png" alt="Бестиарий"></div>
+                <div class="btn" data-action="profile"><img src="assets/all_buttons/player_profile.png" alt="Профиль"></div>
+            </div>
+
+            <!-- НИЖНИЕ СТАТЫ -->
+            <div class="bottom-stats">
+                <div class="stat-block">
+                    <div class="stat-icons">
+                        <img src="assets/interface/damage_and_armor_stat_board.png" alt="Урон/Защита">
+                    </div>
+                    <div class="stat-values">
+                        <span class="attack">⚔️ 0</span>
+                        <span class="defense">🛡️ 0</span>
+                    </div>
                 </div>
-                <div class="stat-values">
-                    <span class="agility">💨 0</span>
-                    <span class="hp">❤️ 0</span>
+                <div class="stat-block">
+                    <div class="stat-icons">
+                        <img src="assets/interface/stat_and_health_board.png" alt="Ловкость/Здоровье">
+                    </div>
+                    <div class="stat-values">
+                        <span class="agility">💨 0</span>
+                        <span class="hp">❤️ 0</span>
+                    </div>
                 </div>
             </div>
+
         </div>
 
     </div>
 
     <script>
         // ============================================================
-        //  SHERWOOD UI — ПОЛНЫЙ КОНТРОЛЛЕР
+        //  SHERWOOD UI
         // ============================================================
 
         const SherwoodUI = {
 
-            // -------- КОНСТАНТЫ --------
-            SCREENS: {
-                HOME: 'home',
-                QUEST: 'quest',
-                SUBWAY: 'subway',
-                RAID: 'raid',
-                PORTAL: 'portal',
-                ARENA: 'arena',
-                TAVERN: 'tavern',
-                DAILY: 'daily',
-                TRAINING: 'training',
-                FORGE: 'forge',
-                BAG: 'bag',
-                MARKET: 'market',
-                BESTIARY: 'bestiary',
-                PROFILE: 'profile',
-                SETTINGS: 'settings'
-            },
-
-            // -------- ИНИЦИАЛИЗАЦИЯ --------
             init() {
                 this.container = document.getElementById('game-container');
-                if (!this.container) {
-                    console.error('❌ Контейнер #game-container не найден!');
-                    return;
-                }
+                this.loadingScreen = document.getElementById('loadingScreen');
+                this.mainInterface = document.getElementById('mainInterface');
+                this.playBtn = document.getElementById('playBtn');
+
                 this.bindButtons();
-                this.loadHome();
+                this.bindPlayButton();
                 this.updateDisplay();
+
                 console.log('🏹 Sherwood UI инициализирован!');
             },
 
-            // -------- ПРИВЯЗКА КНОПОК --------
+            bindPlayButton() {
+                this.playBtn.addEventListener('click', () => {
+                    this.loadingScreen.classList.add('hidden');
+                    this.mainInterface.classList.add('active');
+                    console.log('🎮 Игра запущена!');
+                });
+            },
+
             bindButtons() {
                 document.querySelectorAll('.btn').forEach(el => {
                     el.addEventListener('click', (e) => {
@@ -531,7 +608,6 @@
                 });
             },
 
-            // -------- ОБНОВЛЕНИЕ ДАННЫХ --------
             updateDisplay(data) {
                 const d = data || {
                     gold: 1234,
@@ -557,19 +633,13 @@
             },
 
             // -------- НАВИГАЦИЯ --------
-            home() {
-                this.loadHome();
-            },
-
-            // --- ЛЕВАЯ КОЛОНКА ---
+            home() { this.showPlaceholder('🏠 Главный экран'); },
             quest() { this.showPlaceholder('📜 Квесты'); },
             subway() { this.showPlaceholder('🏚️ Подземка'); },
             raid() { this.showPlaceholder('⚔️ Рейд'); },
             portal() { this.showPlaceholder('🌀 Порталы'); },
             arena() { this.showPlaceholder('🏟️ Арена'); },
             tavern() { this.showPlaceholder('🍺 Таверна'); },
-
-            // --- ПРАВАЯ КОЛОНКА ---
             daily() { this.showPlaceholder('📋 Ежедневные задания'); },
             training() { this.showPlaceholder('💪 Тренировка'); },
             forge() { this.showPlaceholder('⚒️ Кузница'); },
@@ -577,23 +647,13 @@
             market() { this.showPlaceholder('💰 Рынок'); },
             bestiary() { this.showPlaceholder('📖 Бестиарий'); },
             profile() { this.showPlaceholder('👤 Профиль'); },
-
-            // --- СИСТЕМНОЕ ---
             settings() { this.showPlaceholder('⚙️ Настройки'); },
 
-            // -------- ОТОБРАЖЕНИЕ ЭКРАНОВ --------
-            loadHome() {
-                document.querySelectorAll('.bg-layer, .statue-left, .statue-right, .divider-left, .divider-right, .arch-layer, .hero-frame, .top-panel, .left-buttons, .right-buttons, .bottom-stats')
-                    .forEach(el => el.style.display = '');
-                const placeholder = document.querySelector('.placeholder-screen');
-                if (placeholder) placeholder.remove();
-                console.log('🏠 Главный экран');
-            },
-
             showPlaceholder(title) {
-                document.querySelectorAll('.bg-layer, .statue-left, .statue-right, .divider-left, .divider-right, .arch-layer, .hero-frame, .top-panel, .left-buttons, .right-buttons, .bottom-stats')
-                    .forEach(el => el.style.display = 'none');
+                // Скрываем основной интерфейс
+                this.mainInterface.classList.remove('active');
 
+                // Убираем старый плейсхолдер
                 const old = document.querySelector('.placeholder-screen');
                 if (old) old.remove();
 
@@ -603,16 +663,19 @@
                     <div class="icon">🏗️</div>
                     <div class="title">${title}</div>
                     <div class="sub">В разработке</div>
-                    <button class="back-btn" onclick="SherwoodUI.home()">← На главную</button>
+                    <button class="back-btn" onclick="SherwoodUI.backToMenu()">← Назад</button>
                 `;
                 this.container.appendChild(div);
                 console.log('📌 Плейсхолдер:', title);
+            },
+
+            backToMenu() {
+                const placeholder = document.querySelector('.placeholder-screen');
+                if (placeholder) placeholder.remove();
+                this.mainInterface.classList.add('active');
+                console.log('🏠 Вернулись в меню');
             }
         };
-
-        // ============================================================
-        //  ЗАПУСК
-        // ============================================================
 
         document.addEventListener('DOMContentLoaded', () => {
             SherwoodUI.init();
