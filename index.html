@@ -4,14 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
     <title>Sherwood RPG</title>
-    <!-- ИКОНКА ВКЛАДКИ (favicon) -->
     <link rel="icon" type="image/png" href="assets/interface/logo.png">
+    <link rel="manifest" href="manifest.json">
     <style>
+        /* ===== RESET ===== */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
             user-select: none;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
@@ -30,14 +32,14 @@
             height: 100vh;
             max-height: 900px;
             position: relative;
-            background: #1a1a2e;
+            background: #0a0a0f;
             overflow: hidden;
             border: 1px solid #2a2a3e;
             box-shadow: 0 0 60px rgba(0, 0, 0, 0.9);
         }
 
-        /* ===== ФОН ===== */
-        #game-container .bg-layer {
+        /* ===== ФОН (100% ширины) ===== */
+        .bg-layer {
             position: absolute;
             top: 0;
             left: 0;
@@ -47,31 +49,31 @@
             z-index: 0;
         }
 
-        /* ===== СТАТУИ ===== */
-        #game-container .statue-left {
+        /* ===== СТАТУИ (передний слой, зажим) ===== */
+        .statue-left {
             position: absolute;
             left: 0;
             top: 0;
             width: 18%;
             height: 100%;
             background: url('assets/backgrounds/left_statue_of_the_main_screen.png') center/contain no-repeat;
-            z-index: 1;
+            z-index: 2;
             pointer-events: none;
         }
 
-        #game-container .statue-right {
+        .statue-right {
             position: absolute;
             right: 0;
             top: 0;
             width: 18%;
             height: 100%;
             background: url('assets/backgrounds/right_statue_of_the_main_screen.png') center/contain no-repeat;
-            z-index: 1;
+            z-index: 2;
             pointer-events: none;
         }
 
         /* ===== РАЗДЕЛИТЕЛИ ===== */
-        #game-container .divider-left {
+        .divider-left {
             position: absolute;
             left: 16%;
             top: 0;
@@ -82,7 +84,7 @@
             pointer-events: none;
         }
 
-        #game-container .divider-right {
+        .divider-right {
             position: absolute;
             right: 16%;
             top: 0;
@@ -94,7 +96,7 @@
         }
 
         /* ===== ЛЕСТНИЦА С АРКОЙ ===== */
-        #game-container .arch-layer {
+        .arch-layer {
             position: absolute;
             bottom: 20%;
             left: 50%;
@@ -102,26 +104,26 @@
             width: 55%;
             height: 45%;
             background: url('assets/interface/staircase_with_an_arch.png') bottom/contain no-repeat;
-            z-index: 2;
+            z-index: 3;
             pointer-events: none;
         }
 
         /* ===== РАМКА ГЕРОЯ ===== */
-        #game-container .hero-frame {
+        .hero-frame {
             position: absolute;
             bottom: 26%;
             left: 50%;
             transform: translateX(-50%);
             width: 28%;
             height: 30%;
-            z-index: 3;
+            z-index: 4;
             display: flex;
             align-items: center;
             justify-content: center;
             pointer-events: none;
         }
 
-        #game-container .hero-frame img {
+        .hero-frame img {
             width: 100%;
             height: 100%;
             object-fit: contain;
@@ -129,44 +131,44 @@
         }
 
         /* ===== ВЕРХНЯЯ ПАНЕЛЬ ===== */
-        #game-container .top-panel {
+        .top-panel {
             position: absolute;
             top: 4%;
             left: 18%;
             right: 18%;
-            z-index: 5;
+            z-index: 10;
             display: flex;
             justify-content: space-between;
             align-items: center;
             gap: 4px;
         }
 
-        #game-container .top-panel .resource {
+        .top-panel .resource {
             width: 22%;
             display: flex;
             flex-direction: column;
             align-items: center;
         }
 
-        #game-container .top-panel .resource img {
+        .top-panel .resource img {
             width: 100%;
             max-width: 40px;
             height: auto;
         }
 
-        #game-container .top-panel .resource span {
+        .top-panel .resource span {
             color: #ffd700;
             font-size: 0.65em;
-            text-shadow: 0 0 10px rgba(0,0,0,0.9);
+            text-shadow: 0 0 10px rgba(0, 0, 0, 0.9);
             margin-top: 2px;
             font-weight: bold;
         }
 
-        #game-container .top-panel .resource.silver span {
+        .top-panel .resource.silver span {
             color: #c0c0c0;
         }
 
-        #game-container .top-panel .exp-bar {
+        .top-panel .exp-bar {
             flex: 1;
             display: flex;
             flex-direction: column;
@@ -174,22 +176,22 @@
             padding: 0 4px;
         }
 
-        #game-container .top-panel .exp-bar img {
+        .top-panel .exp-bar img {
             width: 100%;
             max-width: 120px;
             height: auto;
         }
 
-        #game-container .top-panel .exp-bar .level-text {
+        .top-panel .exp-bar .level-text {
             color: #e0c080;
             font-size: 0.55em;
-            text-shadow: 0 0 10px rgba(0,0,0,0.9);
+            text-shadow: 0 0 10px rgba(0, 0, 0, 0.9);
             margin-top: 2px;
             letter-spacing: 1px;
         }
 
         /* ===== ЛЕВЫЕ КНОПКИ ===== */
-        #game-container .left-buttons {
+        .left-buttons {
             position: absolute;
             left: 3%;
             top: 22%;
@@ -200,11 +202,11 @@
             width: 13%;
         }
 
-        #game-container .left-buttons .btn {
+        .left-buttons .btn {
             width: 100%;
             aspect-ratio: 1/1;
             cursor: pointer;
-            background: rgba(0,0,0,0.4);
+            background: rgba(0, 0, 0, 0.4);
             border: 1px solid rgba(201, 168, 76, 0.2);
             border-radius: 8px;
             display: flex;
@@ -214,24 +216,24 @@
             padding: 2px;
         }
 
-        #game-container .left-buttons .btn img {
+        .left-buttons .btn img {
             width: 80%;
             height: 80%;
             object-fit: contain;
         }
 
-        #game-container .left-buttons .btn:hover {
+        .left-buttons .btn:hover {
             background: rgba(201, 168, 76, 0.15);
             border-color: rgba(201, 168, 76, 0.5);
             transform: scale(1.05);
         }
 
-        #game-container .left-buttons .btn:active {
+        .left-buttons .btn:active {
             transform: scale(0.9);
         }
 
         /* ===== ПРАВЫЕ КНОПКИ ===== */
-        #game-container .right-buttons {
+        .right-buttons {
             position: absolute;
             right: 3%;
             top: 22%;
@@ -242,11 +244,11 @@
             width: 13%;
         }
 
-        #game-container .right-buttons .btn {
+        .right-buttons .btn {
             width: 100%;
             aspect-ratio: 1/1;
             cursor: pointer;
-            background: rgba(0,0,0,0.4);
+            background: rgba(0, 0, 0, 0.4);
             border: 1px solid rgba(201, 168, 76, 0.2);
             border-radius: 8px;
             display: flex;
@@ -256,62 +258,62 @@
             padding: 2px;
         }
 
-        #game-container .right-buttons .btn img {
+        .right-buttons .btn img {
             width: 80%;
             height: 80%;
             object-fit: contain;
         }
 
-        #game-container .right-buttons .btn:hover {
+        .right-buttons .btn:hover {
             background: rgba(201, 168, 76, 0.15);
             border-color: rgba(201, 168, 76, 0.5);
             transform: scale(1.05);
         }
 
-        #game-container .right-buttons .btn:active {
+        .right-buttons .btn:active {
             transform: scale(0.9);
         }
 
         /* ===== НИЖНИЕ СТАТЫ ===== */
-        #game-container .bottom-stats {
+        .bottom-stats {
             position: absolute;
             bottom: 3%;
             left: 18%;
             right: 18%;
-            z-index: 5;
+            z-index: 10;
             display: flex;
             justify-content: space-between;
             gap: 8px;
         }
 
-        #game-container .bottom-stats .stat-block {
+        .bottom-stats .stat-block {
             width: 44%;
             display: flex;
             flex-direction: column;
             align-items: center;
         }
 
-        #game-container .bottom-stats .stat-block .stat-label {
+        .bottom-stats .stat-block .stat-label {
             color: #c9a84c;
             font-size: 0.45em;
             letter-spacing: 1px;
-            text-shadow: 0 0 10px rgba(0,0,0,0.9);
+            text-shadow: 0 0 10px rgba(0, 0, 0, 0.9);
             text-transform: uppercase;
             margin-bottom: 2px;
         }
 
-        #game-container .bottom-stats .stat-block .stat-values {
+        .bottom-stats .stat-block .stat-values {
             display: flex;
             justify-content: center;
             gap: 12px;
             font-size: 0.6em;
             color: #e0c080;
-            text-shadow: 0 0 10px rgba(0,0,0,0.9);
+            text-shadow: 0 0 10px rgba(0, 0, 0, 0.9);
             width: 100%;
         }
 
-        #game-container .bottom-stats .stat-block .stat-values span {
-            background: rgba(0,0,0,0.5);
+        .bottom-stats .stat-block .stat-values span {
+            background: rgba(0, 0, 0, 0.5);
             padding: 2px 8px;
             border-radius: 4px;
             border: 1px solid rgba(201, 168, 76, 0.1);
@@ -322,12 +324,62 @@
         .stat-values .agility { color: #ff9800; }
         .stat-values .hp { color: #4caf50; }
 
+        /* ===== ПЛЕЙСХОЛДЕР ===== */
+        .placeholder-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: rgba(10, 10, 15, 0.92);
+            z-index: 100;
+            color: #e0c080;
+            font-family: 'Georgia', serif;
+            padding: 20px;
+        }
+
+        .placeholder-screen .icon {
+            font-size: 3em;
+            margin-bottom: 16px;
+        }
+
+        .placeholder-screen .title {
+            font-size: 1.2em;
+            margin-bottom: 8px;
+        }
+
+        .placeholder-screen .sub {
+            font-size: 0.7em;
+            color: #888;
+        }
+
+        .placeholder-screen .back-btn {
+            margin-top: 20px;
+            background: rgba(201, 168, 76, 0.2);
+            border: 1px solid rgba(201, 168, 76, 0.3);
+            color: #e0c080;
+            padding: 8px 24px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-family: 'Georgia', serif;
+            font-size: 0.8em;
+            transition: 0.15s;
+        }
+
+        .placeholder-screen .back-btn:hover {
+            background: rgba(201, 168, 76, 0.3);
+        }
+
         /* ===== АДАПТИВ ===== */
         @media (max-width: 400px) {
-            #game-container .top-panel .resource span { font-size: 0.5em; }
-            #game-container .top-panel .exp-bar .level-text { font-size: 0.45em; }
-            #game-container .bottom-stats .stat-block .stat-values { font-size: 0.5em; gap: 6px; }
-            #game-container .bottom-stats .stat-block .stat-label { font-size: 0.4em; }
+            .top-panel .resource span { font-size: 0.5em; }
+            .top-panel .exp-bar .level-text { font-size: 0.45em; }
+            .bottom-stats .stat-block .stat-values { font-size: 0.5em; gap: 6px; }
+            .bottom-stats .stat-block .stat-label { font-size: 0.4em; }
         }
     </style>
 </head>
@@ -357,19 +409,19 @@
         <div class="top-panel">
             <div class="resource">
                 <img src="assets/interface/gold_plate.png" alt="Золото">
-                <span id="gold-display">1 234</span>
+                <span id="gold-display">0</span>
             </div>
             <div class="exp-bar">
                 <img src="assets/interface/hero_experience_scale.png" alt="Опыт">
-                <div class="level-text">УРОВЕНЬ <span id="level-display">5</span></div>
+                <div class="level-text">УРОВЕНЬ <span id="level-display">1</span></div>
             </div>
             <div class="resource silver">
                 <img src="assets/interface/silver_plaque.png" alt="Серебро">
-                <span id="silver-display">5 678</span>
+                <span id="silver-display">0</span>
             </div>
         </div>
 
-        <!-- ЛЕВЫЕ КНОПКИ (7 штук) -->
+        <!-- ЛЕВЫЕ КНОПКИ -->
         <div class="left-buttons">
             <div class="btn" data-action="quest"><img src="assets/all_buttons/play.png" alt="Квест"></div>
             <div class="btn" data-action="subway"><img src="assets/all_buttons/subway.png" alt="Подземка"></div>
@@ -380,7 +432,7 @@
             <div class="btn" data-action="settings"><img src="assets/all_buttons/settings.png" alt="Настройки"></div>
         </div>
 
-        <!-- ПРАВЫЕ КНОПКИ (7 штук) -->
+        <!-- ПРАВЫЕ КНОПКИ -->
         <div class="right-buttons">
             <div class="btn" data-action="daily"><img src="assets/all_buttons/daily_quests.png" alt="Ежедневные"></div>
             <div class="btn" data-action="training"><img src="assets/all_buttons/training.png" alt="Тренировка"></div>
@@ -396,15 +448,15 @@
             <div class="stat-block">
                 <div class="stat-label">Урон / Защита</div>
                 <div class="stat-values">
-                    <span class="attack">⚔️ 124</span>
-                    <span class="defense">🛡️ 87</span>
+                    <span class="attack">⚔️ 0</span>
+                    <span class="defense">🛡️ 0</span>
                 </div>
             </div>
             <div class="stat-block">
                 <div class="stat-label">Ловкость / Здоровье</div>
                 <div class="stat-values">
-                    <span class="agility">💨 43</span>
-                    <span class="hp">❤️ 320</span>
+                    <span class="agility">💨 0</span>
+                    <span class="hp">❤️ 0</span>
                 </div>
             </div>
         </div>
@@ -412,26 +464,150 @@
     </div>
 
     <script>
-        // ===== ОБРАБОТЧИКИ КНОПОК =====
-        document.querySelectorAll('.btn').forEach(el => {
-            el.addEventListener('click', function(e) {
-                e.stopPropagation();
-                const action = this.dataset.action;
-                console.log('🔘 Нажата кнопка:', action);
-                // Здесь будет переключение экранов
-            });
+        // ============================================================
+        //  SHERWOOD UI — ПОЛНЫЙ КОНТРОЛЛЕР
+        // ============================================================
+
+        const SherwoodUI = {
+
+            // -------- КОНСТАНТЫ --------
+            SCREENS: {
+                HOME: 'home',
+                QUEST: 'quest',
+                SUBWAY: 'subway',
+                RAID: 'raid',
+                PORTAL: 'portal',
+                ARENA: 'arena',
+                TAVERN: 'tavern',
+                DAILY: 'daily',
+                TRAINING: 'training',
+                FORGE: 'forge',
+                BAG: 'bag',
+                MARKET: 'market',
+                BESTIARY: 'bestiary',
+                PROFILE: 'profile',
+                SETTINGS: 'settings'
+            },
+
+            // -------- ИНИЦИАЛИЗАЦИЯ --------
+            init() {
+                this.container = document.getElementById('game-container');
+                if (!this.container) {
+                    console.error('❌ Контейнер #game-container не найден!');
+                    return;
+                }
+                this.bindButtons();
+                this.loadHome();
+                this.updateDisplay();
+                console.log('🏹 Sherwood UI инициализирован!');
+            },
+
+            // -------- ПРИВЯЗКА КНОПОК --------
+            bindButtons() {
+                document.querySelectorAll('.btn').forEach(el => {
+                    el.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const action = el.dataset.action;
+                        if (action && this[action]) {
+                            this[action]();
+                        } else {
+                            console.log('🔘 Кнопка:', action || 'без action');
+                        }
+                    });
+                });
+            },
+
+            // -------- ОБНОВЛЕНИЕ ДАННЫХ --------
+            updateDisplay(data) {
+                const d = data || {
+                    gold: 1234,
+                    silver: 5678,
+                    level: 5,
+                    attack: 124,
+                    defense: 87,
+                    agility: 43,
+                    hp: 320,
+                    maxHp: 500
+                };
+                document.getElementById('gold-display').textContent = this.formatNumber(d.gold);
+                document.getElementById('silver-display').textContent = this.formatNumber(d.silver);
+                document.getElementById('level-display').textContent = d.level;
+                document.querySelector('.stat-values .attack').textContent = '⚔️ ' + d.attack;
+                document.querySelector('.stat-values .defense').textContent = '🛡️ ' + d.defense;
+                document.querySelector('.stat-values .agility').textContent = '💨 ' + d.agility;
+                document.querySelector('.stat-values .hp').textContent = '❤️ ' + d.hp + '/' + d.maxHp;
+            },
+
+            formatNumber(n) {
+                return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+            },
+
+            // -------- НАВИГАЦИЯ --------
+            home() {
+                this.loadHome();
+            },
+
+            // --- ЛЕВАЯ КОЛОНКА ---
+            quest() { this.showPlaceholder('📜 Квесты'); },
+            subway() { this.showPlaceholder('🏚️ Подземка'); },
+            raid() { this.showPlaceholder('⚔️ Рейд'); },
+            portal() { this.showPlaceholder('🌀 Порталы'); },
+            arena() { this.showPlaceholder('🏟️ Арена'); },
+            tavern() { this.showPlaceholder('🍺 Таверна'); },
+
+            // --- ПРАВАЯ КОЛОНКА ---
+            daily() { this.showPlaceholder('📋 Ежедневные задания'); },
+            training() { this.showPlaceholder('💪 Тренировка'); },
+            forge() { this.showPlaceholder('⚒️ Кузница'); },
+            bag() { this.showPlaceholder('🎒 Сумка'); },
+            market() { this.showPlaceholder('💰 Рынок'); },
+            bestiary() { this.showPlaceholder('📖 Бестиарий'); },
+            profile() { this.showPlaceholder('👤 Профиль'); },
+
+            // --- СИСТЕМНОЕ ---
+            settings() { this.showPlaceholder('⚙️ Настройки'); },
+
+            // -------- ОТОБРАЖЕНИЕ ЭКРАНОВ --------
+            loadHome() {
+                // Показываем все слои главного экрана
+                document.querySelectorAll('.bg-layer, .statue-left, .statue-right, .divider-left, .divider-right, .arch-layer, .hero-frame, .top-panel, .left-buttons, .right-buttons, .bottom-stats')
+                    .forEach(el => el.style.display = '');
+                const placeholder = document.querySelector('.placeholder-screen');
+                if (placeholder) placeholder.remove();
+                console.log('🏠 Главный экран');
+            },
+
+            showPlaceholder(title) {
+                // Скрываем слои главного экрана
+                document.querySelectorAll('.bg-layer, .statue-left, .statue-right, .divider-left, .divider-right, .arch-layer, .hero-frame, .top-panel, .left-buttons, .right-buttons, .bottom-stats')
+                    .forEach(el => el.style.display = 'none');
+
+                // Убираем старый placeholder
+                const old = document.querySelector('.placeholder-screen');
+                if (old) old.remove();
+
+                // Создаём новый
+                const div = document.createElement('div');
+                div.className = 'placeholder-screen';
+                div.innerHTML = `
+                    <div class="icon">🏗️</div>
+                    <div class="title">${title}</div>
+                    <div class="sub">В разработке</div>
+                    <button class="back-btn" onclick="SherwoodUI.home()">← На главную</button>
+                `;
+                this.container.appendChild(div);
+                console.log('📌 Плейсхолдер:', title);
+            }
+        };
+
+        // ============================================================
+        //  ЗАПУСК
+        // ============================================================
+
+        document.addEventListener('DOMContentLoaded', () => {
+            SherwoodUI.init();
         });
-
-        // ===== ДЕМОНСТРАЦИОННЫЕ ДАННЫЕ =====
-        document.getElementById('gold-display').textContent = '1 234';
-        document.getElementById('silver-display').textContent = '5 678';
-        document.getElementById('level-display').textContent = '5';
-        document.querySelector('.stat-values .attack').textContent = '⚔️ 124';
-        document.querySelector('.stat-values .defense').textContent = '🛡️ 87';
-        document.querySelector('.stat-values .agility').textContent = '💨 43';
-        document.querySelector('.stat-values .hp').textContent = '❤️ 320';
-
-        console.log('🏹 Sherwood RPG — главный экран загружен!');
     </script>
+
 </body>
 </html>
