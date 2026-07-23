@@ -208,7 +208,7 @@ const SherwoodUI = {
 
     _showNotification(msg) { const log = document.getElementById('dungeon-log'); if (log) { log.textContent = msg; log.style.color = '#f44336'; setTimeout(() => log.style.color = '#aaa', 2000); } },
 
-        _renderDungeon() {
+            _renderDungeon() {
         const d = this._dungeon || Sherwood.Dungeon?.getDungeon?.();
         if (!d) { this.showDungeon(); return; }
         const bgMap = { forest: this._bg.dungeon_forest, swamp: this._bg.dungeon_swamp, cave: this._bg.dungeon_cave };
@@ -220,9 +220,7 @@ const SherwoodUI = {
         const te = d.tileExt || '.jpeg';
         const tp = d.tilePrefix || 'tiles';
         const tbp = `assets/dungeon_tiles/${tf}`;
-        // Фон открытого пола — спрайт-лист подземки
         const openFloorBg = `assets/dungeon_tiles/${tf}/${tf}tiles.png`;
-        // Иконки объектов
         const chestIcons = {
             forest: { closed: 'assets/interface/locked_chest_first_dungeon.png', open: 'assets/interface/open_chest_first_dungeon.png' },
             swamp: { closed: 'assets/interface/locked_chest_second_dungeon.png', open: 'assets/interface/open_chest_of_the_second_dungeon.png' },
@@ -233,28 +231,42 @@ const SherwoodUI = {
         const ci = chestIcons[d.dungeonId] || chestIcons['forest'];
         const ai = altarIcons[d.dungeonId] || altarIcons['forest'];
         const cai = cauldronIcons[d.dungeonId] || cauldronIcons['forest'];
-        
+
+        // Собираем открытые клетки для фона
+        let openCells = [];
+        for (let y = 0; y < size; y++) {
+            for (let x = 0; x < size; x++) {
+                const cell = d.grid[y]?.[x];
+                if (cell && cell.explored) {
+                    openCells.push({ x, y });
+                }
+            }
+        }
+
         let gridHtml = '';
         for (let y = 0; y < size; y++) {
             gridHtml += '<div style="display:flex;justify-content:center;gap:2px;margin-bottom:2px;">';
             for (let x = 0; x < size; x++) {
                 const cell = d.grid[y]?.[x] || { type: 'wall', walkable: false, visible: false, explored: false };
                 const isPlayer = d.playerPos?.x === x && d.playerPos?.y === y;
-                const isExplored = cell.explored; // открыта навсегда
-                const isVisible = cell.visible;   // в радиусе видимости сейчас
-                
-                let bg = '#1a1a1a'; // тёмный фон для неоткрытых
+                const isExplored = cell.explored;
+                const isVisible = cell.visible;
+
+                // Закрытая клетка — тайл, открытая — прозрачная (фон снизу)
+                let bgStyle;
+                if (isExplored) {
+                    bgStyle = 'background:transparent;';
+                } else {
+                    const tileNum = 1 + ((x * 7 + y * 3) % 14);
+                    bgStyle = `background-image:url('${tbp}/${tp}${tileNum}${te}');background-size:cover;background-position:center;`;
+                }
+
                 let content = '';
-                let bc = 'rgba(255,255,255,0.03)';
+                let bc = isExplored ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.03)';
                 let es = '';
                 let ch = '';
-                
-                if (isExplored) {
-                    // Открытая клетка — фон из спрайт-листа
-                    bg = `url('${openFloorBg}')`;
-                    bc = 'rgba(255,255,255,0.08)';
-                    
-                    // Объекты видны только если клетка в радиусе видимости (или уже была открыта)
+
+                if (isExplored && isVisible) {
                     if (cell.type === 'start') {
                         content = '<img src="assets/interface/labyrinth_of_icons.png" style="width:70%;height:70%;object-fit:contain;opacity:0.5;">';
                     } else if (cell.type === 'exit') {
@@ -269,17 +281,16 @@ const SherwoodUI = {
                     } else if (cell.type === 'cauldron') {
                         content = `<img src="${cai}" style="width:80%;height:80%;object-fit:contain;">`;
                         bc = '#4caf50';
-                    } else if (cell.hasMonster && isVisible) {
-                        // Монстра видно только в радиусе видимости
-                        content = cell.isBoss ? '👑' : '👹';
-                        bc = cell.isBoss ? '#ff6a00' : '#f44336';
+                    } else if (cell.hasMonster) {
                         if (cell.monsterId) {
                             content = `<img src="assets/all_beasts/${cell.monsterId}" style="width:80%;height:80%;object-fit:contain;" onerror="this.style.display='none';this.parentElement.innerHTML='👹';">`;
+                        } else {
+                            content = cell.isBoss ? '👑' : '👹';
                         }
+                        bc = cell.isBoss ? '#ff6a00' : '#f44336';
                     }
-                    
-                    // Клик только по соседним открытым клеткам
-                    if (!isPlayer && isVisible && cell.walkable) {
+
+                    if (!isPlayer && cell.walkable) {
                         const isAdjacent = d.playerPos && Math.abs(x - d.playerPos.x) + Math.abs(y - d.playerPos.y) === 1;
                         if (isAdjacent) {
                             ch = `onclick="SherwoodUI._dungeonMove(${x},${y})"`;
@@ -290,24 +301,31 @@ const SherwoodUI = {
                         }
                     }
                 }
-                
-                // Игрок всегда виден
+
                 if (isPlayer) {
                     content = '<img src="assets/interface/labyrinth_of_icons.png" style="width:80%;height:80%;object-fit:contain;">';
                     bc = '#ffd700';
                     es += 'box-shadow:0 0 16px rgba(255,215,0,0.5);';
-                    bg = `url('${openFloorBg}')`;
                 }
-                
-                const bgStyle = bg.startsWith('url') ? `background-image:${bg};background-size:cover;background-position:center;` : `background:${bg};`;
+
                 gridHtml += `<div ${ch} style="width:${cellSize}px;height:${cellSize}px;${bgStyle}border:2px solid ${bc};border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:${cellSize*0.4}px;transition:0.15s;${es}">${content}</div>`;
             }
             gridHtml += '</div>';
         }
-        
+
+        // Фон открытого пола — позиционируем под открытыми клетками
+        let openFloorHtml = '';
+        for (const oc of openCells) {
+            const left = oc.x * (cellSize + 2) + 1;
+            const top = oc.y * (cellSize + 2) + 1;
+            openFloorHtml += `<div style="position:absolute;left:${left}px;top:${top}px;width:${cellSize}px;height:${cellSize}px;background-image:url('${openFloorBg}');background-size:cover;background-position:center;border-radius:4px;z-index:0;pointer-events:none;"></div>`;
+        }
+
         const hp = Sherwood.getPlayer?.()?.stats?.hp || 0;
+        const gridWidth = cellSize * size + (size - 1) * 2;
+
         if (this._screenLayer) {
-            this._screenLayer.innerHTML = `<div style="min-height:100%;background:rgba(0,0,0,0.5);padding:12px;display:flex;flex-direction:column;align-items:center;"><div style="width:100%;max-width:${cellSize*size+20}px;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;"><button onclick="SherwoodUI._leaveDungeon()" style="background:transparent;border:none;cursor:pointer;padding:0;width:44px;height:44px;"><img src="assets/all_buttons/back.png" style="width:100%;height:100%;object-fit:contain;"></button><div style="color:#70a0e0;font-weight:bold;">${d.dungeonId||'dungeon'} Ур.${d.level||1}</div><div style="color:#4caf50;">❤️${hp}</div></div><div style="background:rgba(0,0,0,0.5);border-radius:6px;padding:6px;margin-bottom:8px;"><div style="display:flex;justify-content:space-around;font-size:11px;color:#aaa;"><span>👹 ${d.monstersKilled||0}/${d.totalMonsters||0}</span><span>📦 ${d.chestsOpened||0}</span><span>🚶 ${d.steps||0}</span></div></div>${gridHtml}<div id="dungeon-log" style="text-align:center;font-size:12px;color:#aaa;min-height:20px;margin-top:8px;background:rgba(0,0,0,0.6);border-radius:6px;padding:6px;"></div></div></div>`;
+            this._screenLayer.innerHTML = `<div style="min-height:100%;background:rgba(0,0,0,0.5);padding:12px;display:flex;flex-direction:column;align-items:center;"><div style="width:100%;max-width:${gridWidth + 20}px;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;"><button onclick="SherwoodUI._leaveDungeon()" style="background:transparent;border:none;cursor:pointer;padding:0;width:44px;height:44px;"><img src="assets/all_buttons/back.png" style="width:100%;height:100%;object-fit:contain;"></button><div style="color:#70a0e0;font-weight:bold;">${d.dungeonId||'dungeon'} Ур.${d.level||1}</div><div style="color:#4caf50;">❤️${hp}</div></div><div style="background:rgba(0,0,0,0.5);border-radius:6px;padding:6px;margin-bottom:8px;"><div style="display:flex;justify-content:space-around;font-size:11px;color:#aaa;"><span>👹 ${d.monstersKilled||0}/${d.totalMonsters||0}</span><span>📦 ${d.chestsOpened||0}</span><span>🚶 ${d.steps||0}</span></div></div><div style="position:relative;width:${gridWidth}px;height:${gridWidth}px;margin:0 auto;">${openFloorHtml}<div style="position:relative;z-index:1;">${gridHtml}</div></div><div id="dungeon-log" style="text-align:center;font-size:12px;color:#aaa;min-height:20px;margin-top:8px;background:rgba(0,0,0,0.6);border-radius:6px;padding:6px;"></div></div></div>`;
             this._screenLayer.style.display = 'block';
         }
     },
