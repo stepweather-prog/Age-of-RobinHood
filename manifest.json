@@ -2,7 +2,7 @@
   "name": "Sherwood RPG",
   "short_name": "Sherwood",
   "description": "Ролевая игра в мире Шервудского леса",
-  "start_url": "/index.html",
+  "start_url": "./",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#0a0a0f",
