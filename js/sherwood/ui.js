@@ -30,6 +30,17 @@ const SherwoodUI = {
     },
 
     // ============================================================
+    //  ИКОНКИ СТАТОВ ДЛЯ ТРЕНИРОВКИ
+    // ============================================================
+
+    _statIcons: {
+        attack: 'assets/interface/icon_power.png',
+        defense: 'assets/interface/icon_defense.png',
+        agility: 'assets/interface/icon_dexterity.png',
+        hp: 'assets/interface/icon_health.png'
+    },
+
+    // ============================================================
     //  АУДИО
     // ============================================================
 
@@ -51,7 +62,11 @@ const SherwoodUI = {
         'levelup': 'assets/sounds/levelup.wav',
         'chest_open': 'assets/sounds/chest_opens.wav',
         'trap': 'assets/sounds/trap.wav',
-        'dungeon_enter': 'assets/sounds/subway_1.wav'
+        'dungeon_enter': 'assets/sounds/subway_1.wav',
+        'altar': 'assets/sounds/altar_underground.mp3',
+        'loot_drop': 'assets/sounds/loot_drop.wav',
+        'bottle_health': 'assets/sounds/bottle_health.mp3',
+        'forge': 'assets/sounds/forge.wav'
     },
 
     // ============================================================
@@ -65,13 +80,11 @@ const SherwoodUI = {
             return;
         }
 
-        // Создаём слой для экранов
         this._screenLayer = document.createElement('div');
         this._screenLayer.id = 'screen-layer';
         this._screenLayer.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;z-index:50;display:none;';
         this.container.appendChild(this._screenLayer);
 
-        // Кешируем элементы главного экрана
         this._mainElements = [
             '.bg-layer', '.arch-layer', '.hero-frame',
             '.top-panel', '.top-actions', '.left-buttons',
@@ -83,7 +96,6 @@ const SherwoodUI = {
         this.bindPlayButton();
         this.updateDisplay();
 
-        // Подписываемся на события
         if (typeof Sherwood !== 'undefined') {
             Sherwood.on('RESOURCE_CHANGED', () => this.updateDisplay());
             Sherwood.on('PLAYER_LEVEL_UP', () => {
@@ -262,7 +274,9 @@ const SherwoodUI = {
             this._screenLayer.innerHTML = `
                 <div style="min-height:100%;background:rgba(0,0,0,0.7);padding:16px;display:flex;flex-direction:column;">
                     <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
-                        <button onclick="SherwoodUI.loadHome()" style="background:rgba(255,255,255,0.1);border:1px solid #666;color:#fff;padding:6px 14px;border-radius:6px;cursor:pointer;font-family:'Georgia',serif;">← Назад</button>
+                        <button onclick="SherwoodUI.loadHome()" style="background:transparent;border:none;cursor:pointer;padding:0;width:50px;height:50px;">
+                            <img src="assets/all_buttons/back.png" style="width:100%;height:100%;object-fit:contain;">
+                        </button>
                         <span style="color:#e0c080;font-size:1.1em;">${title}</span>
                     </div>
                     <div style="flex:1;">${contentHTML}</div>
@@ -379,6 +393,26 @@ const SherwoodUI = {
         const tilePrefix = d.tilePrefix || 'tiles';
         const tileBasePath = `assets/dungeon_tiles/${tileFolder}`;
 
+        // Файлы для объектов подземки
+        const dungeonChestIcons = {
+            forest: { closed: 'assets/interface/locked_chest_first_dungeon.png', open: 'assets/interface/open_chest_first_dungeon.png' },
+            swamp: { closed: 'assets/interface/locked_chest_second_dungeon.png', open: 'assets/interface/open_chest_of_the_second_dungeon.png' },
+            cave: { closed: 'assets/interface/locked_chest_third_dungeon.png', open: 'assets/interface/open_chest_third_dungeon.png' }
+        };
+        const dungeonAltarIcons = {
+            forest: 'assets/interface/altar_of_the_first_dungeon.png',
+            swamp: 'assets/interface/altar_of_the_second_dungeon.png',
+            cave: 'assets/interface/the_third_altar_of_the_dungeon.png'
+        };
+        const dungeonCauldronIcons = {
+            forest: 'assets/interface/cauldron_first_dungeon.png',
+            swamp: 'assets/interface/cauldron_of_the_second_dungeon.png',
+            cave: 'assets/interface/the_third_cauldron_of_the_dungeon.png'
+        };
+        const chestIcons = dungeonChestIcons[d.dungeonId] || dungeonChestIcons['forest'];
+        const altarIcon = dungeonAltarIcons[d.dungeonId] || dungeonAltarIcons['forest'];
+        const cauldronIcon = dungeonCauldronIcons[d.dungeonId] || dungeonCauldronIcons['forest'];
+
         let gridHtml = '';
 
         for (let y = 0; y < size; y++) {
@@ -400,20 +434,37 @@ const SherwoodUI = {
 
                     borderColor = 'rgba(255,255,255,0.1)';
 
-                    if (cell.type === 'start') { content = '🏠'; }
-                    else if (cell.type === 'exit') { content = '🚪'; borderColor = '#4caf50'; }
-                    else if (cell.type === 'chest') { content = cell.looted ? '📭' : '📦'; borderColor = '#ffc107'; }
-                    else if (cell.hasMonster) {
+                    if (cell.type === 'start') {
+                        content = '<img src="assets/interface/labyrinth_of_icons.png" style="width:70%;height:70%;object-fit:contain;opacity:0.5;">';
+                    } else if (cell.type === 'exit') {
+                        content = '<img src="assets/interface/staircase_with_an_arch.png" style="width:80%;height:80%;object-fit:contain;">';
+                        borderColor = '#4caf50';
+                    } else if (cell.type === 'chest') {
+                        content = `<img src="${cell.looted ? chestIcons.open : chestIcons.closed}" style="width:80%;height:80%;object-fit:contain;">`;
+                        borderColor = '#ffc107';
+                    } else if (cell.type === 'altar') {
+                        content = `<img src="${altarIcon}" style="width:80%;height:80%;object-fit:contain;">`;
+                        borderColor = '#9c27b0';
+                    } else if (cell.type === 'cauldron') {
+                        content = `<img src="${cauldronIcon}" style="width:80%;height:80%;object-fit:contain;">`;
+                        borderColor = '#4caf50';
+                    } else if (cell.hasMonster) {
                         content = cell.isBoss ? '👑' : '👹';
                         borderColor = cell.isBoss ? '#ff6a00' : '#f44336';
+                        if (cell.monsterId) {
+                            const monsterPath = `assets/all_beasts/${cell.monsterId}`;
+                            content = `<img src="${monsterPath}" style="width:80%;height:80%;object-fit:contain;" onerror="this.style.display='none';this.parentElement.innerHTML='👹';">`;
+                        }
                     }
 
-                    const isAdjacent = d.playerPos && Math.abs(x - d.playerPos.x) + Math.abs(y - d.playerPos.y) === 1;
-                    if (isAdjacent && !isPlayer && cell.walkable) {
-                        clickHandler = `onclick="SherwoodUI._dungeonMove(${x},${y})"`;
-                        extraStyle = 'cursor:pointer;';
-                        if (!cell.hasMonster && cell.type !== 'exit') {
-                            borderColor = '#4caf50';
+                    if (!isPlayer) {
+                        const isAdjacent = d.playerPos && Math.abs(x - d.playerPos.x) + Math.abs(y - d.playerPos.y) === 1;
+                        if (isAdjacent && cell.walkable) {
+                            clickHandler = `onclick="SherwoodUI._dungeonMove(${x},${y})"`;
+                            extraStyle = 'cursor:pointer;';
+                            if (!cell.hasMonster && cell.type !== 'exit' && cell.type !== 'chest' && cell.type !== 'altar' && cell.type !== 'cauldron') {
+                                borderColor = '#4caf50';
+                            }
                         }
                     }
                 }
@@ -454,7 +505,9 @@ const SherwoodUI = {
                 <div style="min-height:100%;background:rgba(0,0,0,0.5);padding:12px;display:flex;flex-direction:column;align-items:center;">
                     <div style="width:100%;max-width:${cellSize * size + 20}px;">
                         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-                            <button onclick="SherwoodUI._leaveDungeon()" style="background:rgba(0,0,0,0.7);border:1px solid rgba(255,255,255,0.2);color:#ccc;padding:6px 12px;border-radius:6px;cursor:pointer;font-family:'Georgia',serif;">← Выйти</button>
+                            <button onclick="SherwoodUI._leaveDungeon()" style="background:transparent;border:none;cursor:pointer;padding:0;width:44px;height:44px;">
+                                <img src="assets/all_buttons/back.png" style="width:100%;height:100%;object-fit:contain;">
+                            </button>
                             <div style="color:#70a0e0;font-weight:bold;">${d.dungeonId || 'dungeon'} Ур.${d.level || 1}</div>
                             <div style="color:#4caf50;">❤️${hp}</div>
                         </div>
@@ -501,6 +554,22 @@ const SherwoodUI = {
         if (result.type === 'chest') {
             this._playSound('chest_open');
             if (log) log.textContent = '🎁 +' + (result.reward?.gold || 0) + '🪙 +' + (result.reward?.silver || 0) + '⚪';
+            this.updateDisplay();
+            this._renderDungeon();
+            return;
+        }
+
+        if (result.type === 'altar') {
+            this._playSound('altar');
+            if (log) log.textContent = '🙏 Алтарь благословляет вас!';
+            this.updateDisplay();
+            this._renderDungeon();
+            return;
+        }
+
+        if (result.type === 'cauldron') {
+            this._playSound('bottle_health');
+            if (log) log.textContent = '🧪 Вы выпили из котла!';
             this.updateDisplay();
             this._renderDungeon();
             return;
@@ -691,7 +760,7 @@ const SherwoodUI = {
     },
 
     // ============================================================
-    //  ТРЕНИРОВКА, КУЗНИЦА, БЕСТИАРИЙ
+    //  ТРЕНИРОВКА
     // ============================================================
 
     training() {
@@ -699,15 +768,23 @@ const SherwoodUI = {
         const p = (typeof Sherwood !== 'undefined' && Sherwood.getPlayer) ? Sherwood.getPlayer() : null;
         const tl = p ? (p.trainingLevels || {}) : {};
 
+        const stats = ['attack', 'defense', 'hp', 'agility'];
+        const statNames = { attack: 'Атака', defense: 'Защита', hp: 'Здоровье', agility: 'Ловкость' };
+        const statColors = { attack: '#f44336', defense: '#2196f3', hp: '#4caf50', agility: '#ff9800' };
+
         const contentHTML = `
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-                ${['attack','defense','hp','agility'].map(stat => {
+                ${stats.map(stat => {
                     const lvl = tl[stat] || 0;
                     return `
                         <div style="background:rgba(0,0,0,0.5);border:1px solid #555;border-radius:8px;padding:12px;text-align:center;">
-                            <div style="color:#e0c080;">${stat === 'attack' ? '⚔️ Атака' : stat === 'defense' ? '🛡️ Защита' : stat === 'hp' ? '❤️ Здоровье' : '💨 Ловкость'}</div>
-                            <div style="color:#aaa;">Ур. ${lvl}/200</div>
-                            <button onclick="SherwoodUI._doTraining('${stat}')" style="margin-top:8px;background:#c9a040;border:none;border-radius:4px;padding:6px 16px;color:#000;cursor:pointer;font-family:'Georgia',serif;">Тренировать</button>
+                            <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:4px;">
+                                <img src="${this._statIcons[stat]}" style="width:28px;height:28px;object-fit:contain;">
+                                <span style="color:#e0c080;">${statNames[stat]}</span>
+                            </div>
+                            <div style="color:#aaa;font-size:0.8em;">Ур. ${lvl}/200</div>
+                            <div style="color:${statColors[stat]};font-size:0.7em;">+${stat === 'hp' ? 10 : stat === 'agility' ? 1 : 2} за уровень</div>
+                            <button onclick="SherwoodUI._doTraining('${stat}')" style="margin-top:8px;background:#c9a040;border:none;border-radius:4px;padding:6px 16px;color:#000;cursor:pointer;font-family:'Georgia',serif;font-size:0.8em;">Тренировать</button>
                         </div>
                     `;
                 }).join('')}
