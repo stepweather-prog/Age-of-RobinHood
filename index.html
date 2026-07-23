@@ -28,9 +28,9 @@
         /* ===== СТАТУИ ===== */
         .statue-left {
             position: fixed;
-            left: calc(50% - 240px - 24%);
+            left: calc(50% - 240px - 30%);
             top: 0;
-            width: 24%;
+            width: 30%;
             height: 100%;
             background: url('assets/backgrounds/left_statue_of_the_main_screen.png') center/contain no-repeat;
             background-size: cover;
@@ -39,9 +39,9 @@
         }
         .statue-right {
             position: fixed;
-            right: calc(50% - 240px - 24%);
+            right: calc(50% - 240px - 30%);
             top: 0;
-            width: 24%;
+            width: 30%;
             height: 100%;
             background: url('assets/backgrounds/right_statue_of_the_main_screen.png') center/contain no-repeat;
             background-size: cover;
@@ -52,7 +52,7 @@
         /* ===== РАЗДЕЛИТЕЛИ ===== */
         .divider-left {
             position: fixed;
-            left: calc(50% - 240px - 24% + 24% - 8px);
+            left: calc(50% - 240px - 30% + 30% - 8px);
             top: 0;
             width: 16px;
             height: 100%;
@@ -63,7 +63,7 @@
         }
         .divider-right {
             position: fixed;
-            right: calc(50% - 240px - 24% + 24% - 8px);
+            right: calc(50% - 240px - 30% + 30% - 8px);
             top: 0;
             width: 16px;
             height: 100%;
@@ -110,14 +110,14 @@
             pointer-events: none;
         }
 
-        /* ===== ГЕРОЙ + ВИДЕО-РАМКА (ПОДНЯТЫ, ГЕРОЙ УВЕЛИЧЕН) ===== */
+        /* ===== ГЕРОЙ + РАМКА (УМЕНЬШЕНА) ===== */
         .hero-frame {
             position: absolute;
-            bottom: 20%;
+            bottom: 18%;
             left: 50%;
             transform: translateX(-50%);
-            width: 30%;
-            height: 30%;
+            width: 28%;
+            height: 28%;
             z-index: 4;
             display: flex;
             align-items: center;
@@ -126,10 +126,10 @@
         }
         .hero-frame .video-bg {
             position: absolute;
-            top: -10%;
-            left: -10%;
-            width: 120%;
-            height: 120%;
+            top: -8%;
+            left: -8%;
+            width: 116%;
+            height: 116%;
             z-index: 0;
             pointer-events: none;
             border-radius: 12px;
@@ -146,8 +146,8 @@
         .hero-frame img {
             position: relative;
             z-index: 1;
-            width: 90%;
-            height: 90%;
+            width: 85%;
+            height: 85%;
             object-fit: contain;
             filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.15));
         }
@@ -221,7 +221,7 @@
             pointer-events: all;
         }
 
-        /* ===== ВЕРХНЯЯ ПАНЕЛЬ ===== */
+        /* ===== ВЕРХНЯЯ ПАНЕЛЬ (ЦИФРЫ ПОВЕРХ ИКОНОК) ===== */
         .top-panel {
             position: absolute;
             top: 3%;
@@ -238,47 +238,60 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            position: relative;
         }
         .top-panel .resource img {
             width: 100%;
             max-width: 50px;
             height: auto;
+            display: block;
         }
         .top-panel .resource span {
+            position: absolute;
+            bottom: -2px;
+            left: 50%;
+            transform: translateX(-50%);
             color: #ffd700;
-            font-size: 0.75em;
+            font-size: 0.7em;
             text-shadow: 0 0 10px rgba(0, 0, 0, 0.9);
-            margin-top: 2px;
             font-weight: bold;
+            white-space: nowrap;
         }
         .top-panel .resource.silver span {
             color: #c0c0c0;
         }
+
         .top-panel .exp-bar {
             flex: 1;
             display: flex;
             flex-direction: column;
             align-items: center;
             padding: 0 4px;
+            position: relative;
         }
         .top-panel .exp-bar img {
             width: 100%;
             max-width: 140px;
             height: auto;
+            display: block;
         }
         .top-panel .exp-bar .level-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
             color: #e0c080;
-            font-size: 0.65em;
+            font-size: 0.6em;
             text-shadow: 0 0 10px rgba(0, 0, 0, 0.9);
-            margin-top: 2px;
             letter-spacing: 1px;
+            white-space: nowrap;
         }
 
-        /* ===== БОКОВЫЕ КНОПКИ ===== */
+        /* ===== КНОПКИ ===== */
         .left-buttons,
         .right-buttons {
             position: absolute;
-            top: 10%;
+            top: 12%;
             z-index: 10;
             display: flex;
             flex-direction: column;
@@ -334,10 +347,10 @@
             transform: scale(0.9);
         }
 
-        /* ===== НИЖНИЕ СТАТЫ ===== */
+        /* ===== НИЖНИЕ СТАТЫ (ВПИСАНЫ В ДОСКИ) ===== */
         .bottom-stats {
             position: absolute;
-            bottom: -15%;
+            bottom: -5%;
             left: 10%;
             right: 10%;
             z-index: 10;
@@ -353,7 +366,6 @@
             flex-direction: column;
             align-items: center;
             position: relative;
-            padding: 8px 6px;
         }
         .bottom-stats .stat-block .stat-board {
             width: 100%;
@@ -361,44 +373,48 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            position: absolute;
-            top: 0;
-            left: 0;
+            position: relative;
             z-index: 0;
         }
         .bottom-stats .stat-block .stat-board img {
             width: 100%;
             height: auto;
             object-fit: contain;
+            display: block;
         }
         .bottom-stats .stat-block .stat-icons {
+            position: absolute;
+            top: 25%;
+            left: 50%;
+            transform: translateX(-50%);
             display: flex;
-            gap: 20px;
+            gap: 25px;
             align-items: center;
             z-index: 1;
-            margin-bottom: 4px;
-            position: relative;
         }
         .bottom-stats .stat-block .stat-icons img {
-            width: 32px;
-            height: 32px;
+            width: 28px;
+            height: 28px;
             object-fit: contain;
         }
         .bottom-stats .stat-block .stat-values {
+            position: absolute;
+            bottom: 15%;
+            left: 50%;
+            transform: translateX(-50%);
             display: flex;
             justify-content: center;
-            gap: 20px;
-            font-size: 0.8em;
+            gap: 25px;
+            font-size: 0.7em;
             color: #e0c080;
             text-shadow: 0 0 10px rgba(0, 0, 0, 0.9);
-            width: 100%;
+            width: 80%;
             z-index: 1;
-            position: relative;
         }
         .bottom-stats .stat-block .stat-values span {
-            background: rgba(0, 0, 0, 0.5);
-            padding: 2px 14px;
-            border-radius: 6px;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 1px 10px;
+            border-radius: 4px;
             border: 1px solid rgba(201, 168, 76, 0.1);
             font-weight: bold;
         }
@@ -486,15 +502,15 @@
                 font-size: 0.5em;
             }
             .bottom-stats .stat-block .stat-values {
-                font-size: 0.6em;
-                gap: 12px;
+                font-size: 0.55em;
+                gap: 15px;
             }
             .bottom-stats .stat-block .stat-icons img {
-                width: 24px;
-                height: 24px;
+                width: 20px;
+                height: 20px;
             }
             .bottom-stats .stat-block .stat-icons {
-                gap: 14px;
+                gap: 15px;
             }
             .left-buttons .btn .label,
             .right-buttons .btn .label {
@@ -507,7 +523,7 @@
             }
             .statue-left,
             .statue-right {
-                width: 16%;
+                width: 20%;
             }
         }
     </style>
@@ -541,11 +557,10 @@
         <div class="main-interface" id="mainInterface">
             <div class="top-panel">
                 <div class="resource"><img src="assets/interface/gold_plate.png" alt="Золото"><span id="gold-display">0</span></div>
-                <div class="exp-bar"><img src="assets/interface/hero_experience_scale.png" alt="Опыт"><div class="level-text">УРОВЕНЬ <span id="level-display">1</span></div></div>
+                <div class="exp-bar"><img src="assets/interface/hero_experience_scale.png" alt="Опыт"><span class="level-text">УРОВЕНЬ <span id="level-display">1</span></span></div>
                 <div class="resource silver"><img src="assets/interface/silver_plaque.png" alt="Серебро"><span id="silver-display">0</span></div>
             </div>
 
-            <!-- ЛЕВЫЕ КНОПКИ -->
             <div class="left-buttons">
                 <div class="btn" data-action="quest"><img src="assets/all_buttons/home.png" alt="Квест"><span class="label">Квест</span></div>
                 <div class="btn" data-action="subway"><img src="assets/all_buttons/subway.png" alt="Подземка"><span class="label">Подземка</span></div>
@@ -553,9 +568,9 @@
                 <div class="btn" data-action="portal"><img src="assets/all_buttons/portal.png" alt="Портал"><span class="label">Портал</span></div>
                 <div class="btn" data-action="arena"><img src="assets/all_buttons/arena.png" alt="Арена"><span class="label">Арена</span></div>
                 <div class="btn" data-action="tavern"><img src="assets/all_buttons/tavern.png" alt="Таверна"><span class="label">Таверна</span></div>
+                <div class="btn" data-action="settings"><img src="assets/all_buttons/settings.png" alt="Настройки"><span class="label">Настройки</span></div>
             </div>
 
-            <!-- ПРАВЫЕ КНОПКИ -->
             <div class="right-buttons">
                 <div class="btn" data-action="daily"><img src="assets/all_buttons/daily_quests.png" alt="Ежедневные"><span class="label">Ежедневные</span></div>
                 <div class="btn" data-action="training"><img src="assets/all_buttons/training.png" alt="Тренировка"><span class="label">Тренировка</span></div>
@@ -563,9 +578,9 @@
                 <div class="btn" data-action="bag"><img src="assets/all_buttons/hero_bag.png" alt="Сумка"><span class="label">Сумка</span></div>
                 <div class="btn" data-action="market"><img src="assets/all_buttons/sherwood_market.png" alt="Рынок"><span class="label">Рынок</span></div>
                 <div class="btn" data-action="bestiary"><img src="assets/all_buttons/bestiary.png" alt="Бестиарий"><span class="label">Бестиарий</span></div>
+                <div class="btn" data-action="profile"><img src="assets/all_buttons/player_profile.png" alt="Профиль"><span class="label">Профиль</span></div>
             </div>
 
-            <!-- НИЖНИЕ СТАТЫ -->
             <div class="bottom-stats">
                 <div class="stat-block">
                     <div class="stat-board"><img src="assets/interface/damage_and_armor_stat_board.png" alt="Урон и защита"></div>
