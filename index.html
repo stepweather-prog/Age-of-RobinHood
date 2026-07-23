@@ -25,7 +25,6 @@
             position: relative;
         }
 
-        /* ===== СТАТУИ ===== */
         .statue-left {
             position: fixed;
             left: calc(50% - 240px - 30%);
@@ -49,7 +48,6 @@
             pointer-events: none;
         }
 
-        /* ===== РАЗДЕЛИТЕЛИ ===== */
         .divider-left {
             position: fixed;
             left: calc(50% - 240px - 30% + 30% - 8px);
@@ -73,7 +71,6 @@
             pointer-events: none;
         }
 
-        /* ===== ИГРОВОЙ КОНТЕЙНЕР ===== */
         #game-container {
             width: 100%;
             max-width: 480px;
@@ -285,11 +282,52 @@
             text-align: center;
         }
 
-        /* ===== КНОПКИ ===== */
+        /* ===== КНОПКИ НАД АРКОЙ ===== */
+        .top-actions {
+            position: absolute;
+            top: 12%;
+            left: 0;
+            right: 0;
+            z-index: 10;
+            display: flex;
+            justify-content: flex-end;
+            padding: 0 10%;
+            pointer-events: none;
+            gap: 12px;
+        }
+        .top-actions .btn {
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(201, 168, 76, 0.2);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.15s;
+            pointer-events: all;
+            flex-shrink: 0;
+        }
+        .top-actions .btn img {
+            width: 70%;
+            height: 70%;
+            object-fit: contain;
+        }
+        .top-actions .btn:hover {
+            background: rgba(201, 168, 76, 0.15);
+            border-color: rgba(201, 168, 76, 0.5);
+            transform: scale(1.05);
+        }
+        .top-actions .btn:active {
+            transform: scale(0.9);
+        }
+
+        /* ===== БОКОВЫЕ КНОПКИ (БЕЗ НАСТРОЕК И ПРОФИЛЯ) ===== */
         .left-buttons,
         .right-buttons {
             position: absolute;
-            top: 12%;
+            top: 18%;
             z-index: 10;
             display: flex;
             flex-direction: column;
@@ -523,6 +561,10 @@
             .statue-right {
                 width: 20%;
             }
+            .top-actions .btn {
+                width: 40px;
+                height: 40px;
+            }
         }
     </style>
 </head>
@@ -562,9 +604,14 @@
                 <div class="resource silver"><img src="assets/interface/silver_plaque.png" alt="Серебро"><span id="silver-display">0</span></div>
             </div>
 
-            <!-- ЛЕВЫЕ КНОПКИ (ВКЛЮЧАЯ НАСТРОЙКИ) -->
+            <!-- КНОПКИ НАД АРКОЙ -->
+            <div class="top-actions">
+                <div class="btn" data-action="settings"><img src="assets/all_buttons/settings.png" alt="Настройки"></div>
+                <div class="btn" data-action="profile"><img src="assets/all_buttons/player_profile.png" alt="Профиль"></div>
+            </div>
+
+            <!-- ЛЕВЫЕ КНОПКИ -->
             <div class="left-buttons">
-                <div class="btn" data-action="settings"><img src="assets/all_buttons/settings.png" alt="Настройки"><span class="label">Настройки</span></div>
                 <div class="btn" data-action="quest"><img src="assets/all_buttons/home.png" alt="Квест"><span class="label">Квест</span></div>
                 <div class="btn" data-action="subway"><img src="assets/all_buttons/subway.png" alt="Подземка"><span class="label">Подземка</span></div>
                 <div class="btn" data-action="raid"><img src="assets/all_buttons/raid.png" alt="Рейд"><span class="label">Рейд</span></div>
@@ -573,9 +620,8 @@
                 <div class="btn" data-action="tavern"><img src="assets/all_buttons/tavern.png" alt="Таверна"><span class="label">Таверна</span></div>
             </div>
 
-            <!-- ПРАВЫЕ КНОПКИ (ВКЛЮЧАЯ ПРОФИЛЬ) -->
+            <!-- ПРАВЫЕ КНОПКИ -->
             <div class="right-buttons">
-                <div class="btn" data-action="profile"><img src="assets/all_buttons/player_profile.png" alt="Профиль"><span class="label">Профиль</span></div>
                 <div class="btn" data-action="daily"><img src="assets/all_buttons/daily_quests.png" alt="Ежедневные"><span class="label">Ежедневные</span></div>
                 <div class="btn" data-action="training"><img src="assets/all_buttons/training.png" alt="Тренировка"><span class="label">Тренировка</span></div>
                 <div class="btn" data-action="forge"><img src="assets/all_buttons/forge.png" alt="Кузница"><span class="label">Кузница</span></div>
@@ -642,7 +688,7 @@
                 });
             },
             updateDisplay(data) {
-                const d = data || { gold: 1234, silver: 5678, level: 5, exp: 350, expMax: 500, attack: 124, defense: 87, agility: 43, hp: 320, maxHp: 500 };
+                const d = data || { gold: 1234, silver: 5678, level: 5, exp: 350, expMax: 500, attack: 124, defense: 87, agility: 43, hp: 320 };
                 document.getElementById('gold-display').textContent = this.formatNumber(d.gold);
                 document.getElementById('silver-display').textContent = this.formatNumber(d.silver);
                 document.getElementById('exp-display').textContent = this.formatNumber(d.exp);
@@ -654,13 +700,13 @@
             },
             formatNumber(n) { return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' '); },
             settings() { this.showPlaceholder('⚙️ Настройки', 'settings_page.jpeg'); },
+            profile() { this.showPlaceholder('👤 Профиль', 'character_page.jpeg'); },
             quest() { this.showPlaceholder('📜 Квесты', 'quest_chapter_1.jpeg'); },
             subway() { this.showPlaceholder('🏚️ Подземка', 'underground_1_floor_1.jpg'); },
             raid() { this.showPlaceholder('⚔️ Рейд', 'subway_battle3.jpeg'); },
             portal() { this.showPlaceholder('🌀 Порталы', 'portal_1.jpeg'); },
             arena() { this.showPlaceholder('🏟️ Арена', 'arena.jpeg'); },
             tavern() { this.showPlaceholder('🍺 Таверна', 'tavern.jpeg'); },
-            profile() { this.showPlaceholder('👤 Профиль', 'character_page.jpeg'); },
             daily() { this.showPlaceholder('📋 Ежедневные задания', 'tasks.jpeg'); },
             training() { this.showPlaceholder('💪 Тренировка', 'training.jpeg'); },
             forge() { this.showPlaceholder('⚒️ Кузница', 'forge.jpeg'); },
