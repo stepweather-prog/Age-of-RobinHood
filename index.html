@@ -94,7 +94,6 @@
             z-index: 0;
         }
 
-        /* ===== АРКА ===== */
         .arch-layer {
             position: absolute;
             bottom: 8%;
@@ -107,7 +106,6 @@
             pointer-events: none;
         }
 
-        /* ===== ГЕРОЙ + РАМКА ===== */
         .hero-frame {
             position: absolute;
             bottom: 18%;
@@ -149,7 +147,6 @@
             filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.15));
         }
 
-        /* ===== ЗАГРУЗОЧНЫЙ ЭКРАН ===== */
         .loading-screen {
             position: absolute;
             top: 0;
@@ -202,7 +199,6 @@
             transform: scale(0.95);
         }
 
-        /* ===== ОСНОВНОЙ ИНТЕРФЕЙС ===== */
         .main-interface {
             position: absolute;
             top: 0;
@@ -218,7 +214,6 @@
             pointer-events: all;
         }
 
-        /* ===== ВЕРХНЯЯ ПАНЕЛЬ ===== */
         .top-panel {
             position: absolute;
             top: 3%;
@@ -282,22 +277,19 @@
             text-align: center;
         }
 
-        /* ===== КНОПКИ НАД АРКОЙ ===== */
+        /* ===== КНОПКИ НАД АРКОЙ (СМЕЩЕНЫ ЛЕВЕЕ ПОД ШКАЛУ ОПЫТА) ===== */
         .top-actions {
             position: absolute;
-            top: 12%;
-            left: 0;
-            right: 0;
+            top: 14%;
+            left: 35%;
             z-index: 10;
             display: flex;
-            justify-content: flex-end;
-            padding: 0 10%;
-            pointer-events: none;
             gap: 12px;
+            pointer-events: none;
         }
         .top-actions .btn {
-            width: 50px;
-            height: 50px;
+            width: 44px;
+            height: 44px;
             cursor: pointer;
             background: rgba(0, 0, 0, 0.4);
             border: 1px solid rgba(201, 168, 76, 0.2);
@@ -323,7 +315,7 @@
             transform: scale(0.9);
         }
 
-        /* ===== БОКОВЫЕ КНОПКИ (БЕЗ НАСТРОЕК И ПРОФИЛЯ) ===== */
+        /* ===== БОКОВЫЕ КНОПКИ ===== */
         .left-buttons,
         .right-buttons {
             position: absolute;
@@ -383,7 +375,6 @@
             transform: scale(0.9);
         }
 
-        /* ===== НИЖНИЕ СТАТЫ ===== */
         .bottom-stats {
             position: absolute;
             bottom: -5%;
@@ -454,20 +445,11 @@
             border-radius: 4px;
             border: 1px solid rgba(201, 168, 76, 0.1);
         }
-        .stat-values .attack {
-            color: #f44336;
-        }
-        .stat-values .defense {
-            color: #2196f3;
-        }
-        .stat-values .agility {
-            color: #ff9800;
-        }
-        .stat-values .hp {
-            color: #4caf50;
-        }
+        .stat-values .attack { color: #f44336; }
+        .stat-values .defense { color: #2196f3; }
+        .stat-values .agility { color: #ff9800; }
+        .stat-values .hp { color: #4caf50; }
 
-        /* ===== ПЛЕЙСХОЛДЕР ===== */
         .placeholder-screen {
             position: absolute;
             top: 0;
@@ -531,40 +513,16 @@
         }
 
         @media (max-width: 400px) {
-            .top-panel .resource span {
-                font-size: 0.6em;
-            }
-            .top-panel .exp-bar .exp-text {
-                font-size: 0.5em;
-            }
-            .bottom-stats .stat-block .stat-values {
-                font-size: 0.6em;
-                gap: 12px;
-            }
-            .bottom-stats .stat-block .stat-icons img {
-                width: 22px;
-                height: 22px;
-            }
-            .bottom-stats .stat-block .stat-icons {
-                gap: 14px;
-            }
-            .left-buttons .btn .label,
-            .right-buttons .btn .label {
-                font-size: 0.4em;
-            }
-            .loading-screen .play-btn {
-                width: 100px;
-                height: 100px;
-                margin-top: 80px;
-            }
-            .statue-left,
-            .statue-right {
-                width: 20%;
-            }
-            .top-actions .btn {
-                width: 40px;
-                height: 40px;
-            }
+            .top-panel .resource span { font-size: 0.6em; }
+            .top-panel .exp-bar .exp-text { font-size: 0.5em; }
+            .bottom-stats .stat-block .stat-values { font-size: 0.6em; gap: 12px; }
+            .bottom-stats .stat-block .stat-icons img { width: 22px; height: 22px; }
+            .bottom-stats .stat-block .stat-icons { gap: 14px; }
+            .left-buttons .btn .label, .right-buttons .btn .label { font-size: 0.4em; }
+            .loading-screen .play-btn { width: 100px; height: 100px; margin-top: 80px; }
+            .statue-left, .statue-right { width: 20%; }
+            .top-actions { left: 30%; top: 13%; }
+            .top-actions .btn { width: 36px; height: 36px; }
         }
     </style>
 </head>
@@ -604,13 +562,12 @@
                 <div class="resource silver"><img src="assets/interface/silver_plaque.png" alt="Серебро"><span id="silver-display">0</span></div>
             </div>
 
-            <!-- КНОПКИ НАД АРКОЙ -->
+            <!-- КНОПКИ НАД АРКОЙ (СМЕЩЕНЫ ЛЕВЕЕ ПОД ШКАЛУ ОПЫТА) -->
             <div class="top-actions">
                 <div class="btn" data-action="settings"><img src="assets/all_buttons/settings.png" alt="Настройки"></div>
                 <div class="btn" data-action="profile"><img src="assets/all_buttons/player_profile.png" alt="Профиль"></div>
             </div>
 
-            <!-- ЛЕВЫЕ КНОПКИ -->
             <div class="left-buttons">
                 <div class="btn" data-action="quest"><img src="assets/all_buttons/home.png" alt="Квест"><span class="label">Квест</span></div>
                 <div class="btn" data-action="subway"><img src="assets/all_buttons/subway.png" alt="Подземка"><span class="label">Подземка</span></div>
@@ -620,7 +577,6 @@
                 <div class="btn" data-action="tavern"><img src="assets/all_buttons/tavern.png" alt="Таверна"><span class="label">Таверна</span></div>
             </div>
 
-            <!-- ПРАВЫЕ КНОПКИ -->
             <div class="right-buttons">
                 <div class="btn" data-action="daily"><img src="assets/all_buttons/daily_quests.png" alt="Ежедневные"><span class="label">Ежедневные</span></div>
                 <div class="btn" data-action="training"><img src="assets/all_buttons/training.png" alt="Тренировка"><span class="label">Тренировка</span></div>
@@ -703,7 +659,7 @@
             profile() { this.showPlaceholder('👤 Профиль', 'character_page.jpeg'); },
             quest() { this.showPlaceholder('📜 Квесты', 'quest_chapter_1.jpeg'); },
             subway() { this.showPlaceholder('🏚️ Подземка', 'underground_1_floor_1.jpg'); },
-            raid() { this.showPlaceholder('⚔️ Рейд', 'subway_battle3.jpeg'); },
+            raid() { this.showPlaceholder('⚔️ Рейд', 'background_raid.png'); },
             portal() { this.showPlaceholder('🌀 Порталы', 'portal_1.jpeg'); },
             arena() { this.showPlaceholder('🏟️ Арена', 'arena.jpeg'); },
             tavern() { this.showPlaceholder('🍺 Таверна', 'tavern.jpeg'); },
