@@ -301,7 +301,7 @@ const SherwoodUI = {
 
     subway() { this.showDungeon(); },
 
-    showDungeon() {
+        showDungeon() {
         this._playSound('click');
         this._playMusic('dungeon_ambient');
 
@@ -313,7 +313,7 @@ const SherwoodUI = {
         const entries = Object.entries(dungeons);
 
         if (entries.length === 0) {
-            list = '<div style="color:#aaa;text-align:center;padding:20px;">Подземелья временно недоступны</div>';
+            list = '<div style="color:#aaa;text-align:center;padding:40px;">Подземелья временно недоступны</div>';
         }
 
         for (const [id, data] of entries) {
@@ -321,22 +321,73 @@ const SherwoodUI = {
                 ? Sherwood.Dungeon._playerProgress[id]
                 : { level: 1, stars: 0 };
 
+            // Фон для карточки подземки
+            const dungeonBgMap = {
+                forest: 'assets/backgrounds/underground_1_floor_1.jpg',
+                swamp: 'assets/backgrounds/underground_2_floor_1.jpeg',
+                cave: 'assets/backgrounds/underground_3_floor_1.jpeg'
+            };
+            const dungeonBg = dungeonBgMap[id] || dungeonBgMap['forest'];
+
+            // Плитка для иконок уровней
+            const tileFolderMap = {
+                forest: 'dungeon1',
+                swamp: 'dungeon2',
+                cave: 'dungeon3'
+            };
+            const tileExtMap = {
+                forest: '.jpeg',
+                swamp: '.png',
+                cave: '.png'
+            };
+            const tilePrefixMap = {
+                forest: 'tiles',
+                swamp: 'tiles2.',
+                cave: 'tiles3.'
+            };
+            const tileFolder = tileFolderMap[id] || 'dungeon1';
+            const tileExt = tileExtMap[id] || '.jpeg';
+            const tilePrefix = tilePrefixMap[id] || 'tiles';
+
             list += `
-                <div style="background:rgba(0,0,0,0.7);border:1px solid #555;border-radius:10px;padding:12px;margin-bottom:10px;">
-                    <div style="display:flex;justify-content:space-between;align-items:center;">
-                        <span style="color:#e0c080;font-size:1.1em;">${data.icon || '🏚️'} ${data.name || id}</span>
-                        <span style="color:#aaa;font-size:0.8em;">Уровень ${progress.level || 1}/7</span>
+                <div style="background:url('assets/backgrounds/skill_page.jpeg') center/cover no-repeat;border:1px solid #555;border-radius:12px;padding:14px;margin-bottom:12px;position:relative;overflow:hidden;">
+                    <div style="position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:0;"></div>
+                    <div style="position:relative;z-index:1;">
+                        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+                            <div style="width:60px;height:60px;border-radius:10px;background:url('${dungeonBg}') center/cover no-repeat;border:2px solid #c9a040;flex-shrink:0;"></div>
+                            <div>
+                                <div style="color:#e0c080;font-size:1.1em;font-weight:bold;">${data.name || id}</div>
+                                <div style="color:#aaa;font-size:0.75em;">${data.icon || ''} Уровень ${progress.level || 1}/7</div>
+                            </div>
+                        </div>
+                        <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;">
+                            ${[1,2,3,4,5,6,7].map(lvl => {
+                                const unlocked = lvl <= (progress.level || 1);
+                                const tileNum = lvl;
+                                const tileImg = `assets/dungeon_tiles/${tileFolder}/${tilePrefix}${tileNum}${tileExt}`;
+                                const lockImg = 'assets/interface/closed_level_lock_icon.png';
+                                return `
+                                    <div onclick="${unlocked ? `SherwoodUI._startDungeon('${id}',${lvl})` : ''}" style="
+                                        width:48px;height:48px;
+                                        background-image:url('${unlocked ? tileImg : lockImg}');
+                                        background-size:cover;
+                                        background-position:center;
+                                        border:2px solid ${unlocked ? '#c9a040' : '#555'};
+                                        border-radius:6px;
+                                        cursor:${unlocked ? 'pointer' : 'default'};
+                                        display:flex;align-items:center;justify-content:center;
+                                        font-size:0.7em;color:${unlocked ? '#000' : '#888'};
+                                        font-weight:bold;
+                                        text-shadow:0 0 4px rgba(255,255,255,0.8);
+                                        position:relative;
+                                    ">
+                                        <span style="position:absolute;bottom:1px;right:3px;font-size:0.6em;">${lvl}</span>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                        <div style="text-align:center;color:#666;font-size:0.7em;margin-top:6px;">${(progress.level || 1) >= 7 ? '✅ Пройдено' : 'Следующий: ' + ((progress.level || 1) + 1)}</div>
                     </div>
-                    <div style="display:flex;gap:6px;margin:8px 0;flex-wrap:wrap;">
-                        ${[1,2,3,4,5,6,7].map(lvl => {
-                            const unlocked = lvl <= (progress.level || 1);
-                            return `<button onclick="SherwoodUI._startDungeon('${id}',${lvl})" 
-                                style="background:${unlocked ? '#c9a040' : '#444'};border:none;border-radius:4px;padding:4px 8px;color:${unlocked ? '#000' : '#888'};cursor:${unlocked ? 'pointer' : 'default'};font-size:0.8em;">
-                                ${unlocked ? '⭐' : '🔒'} ${lvl}
-                            </button>`;
-                        }).join('')}
-                    </div>
-                    <div style="color:#666;font-size:0.7em;">${(progress.level || 1) >= 7 ? '✅ Пройдено' : 'Следующий: ' + ((progress.level || 1) + 1)}</div>
                 </div>
             `;
         }
@@ -346,7 +397,7 @@ const SherwoodUI = {
             : 0;
 
         const contentHTML = `
-            <div style="color:#aaa;font-size:0.8em;margin-bottom:12px;">🎫 Билетов: ${tickets}</div>
+            <div style="color:#aaa;font-size:0.85em;margin-bottom:12px;text-align:center;">🎫 Билетов: ${tickets}</div>
             ${list}
         `;
 
