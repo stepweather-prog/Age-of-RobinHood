@@ -209,7 +209,7 @@ const SherwoodUI = {
         if (log) { log.textContent = msg; log.style.color = '#f44336'; setTimeout(function() { log.style.color = '#aaa'; }, 2000); }
     },
 
-        _renderDungeon: function() {
+            _renderDungeon: function() {
         var d = Sherwood.Dungeon.getDungeon();
         if (!d) { this.showDungeon(); return; }
         var dungeons = Sherwood.Dungeon.getAvailable();
@@ -223,14 +223,24 @@ const SherwoodUI = {
         if (dd.tiles === 'dungeon2') tilePath = "assets/dungeon_tiles/dungeon2/tiles2.";
         if (dd.tiles === 'dungeon3') tilePath = "assets/dungeon_tiles/dungeon3/tiles3.";
         var ext = dd.ext;
+        // 6 вариантов полос по рядам со случайным зеркалированием
+        var rowVariants = [];
+        for (var r = 0; r < size; r++) {
+            var flipH = Math.random() < 0.5;
+            var flipV = Math.random() < 0.5;
+            var t = '';
+            if (flipH) t += ' scaleX(-1)';
+            if (flipV) t += ' scaleY(-1)';
+            rowVariants.push(t.trim() || 'none');
+        }
         var gridW = cs * size;
         var html = '<div style="position:relative;width:' + gridW + 'px;height:' + gridW + 'px;margin:0 auto;">';
-        // Фон открытых клеток — цельный
+        // Фон открытых клеток — полоса для каждого ряда
         for (var y = 0; y < size; y++) {
             for (var x = 0; x < size; x++) {
                 var cell = d.grid[y][x];
                 if (cell.open) {
-                    html += '<div style="position:absolute;left:' + (x * cs) + 'px;top:' + (y * cs) + 'px;width:' + cs + 'px;height:' + cs + 'px;background-image:url(\'' + floorBg + '\');background-size:cover;background-position:center;z-index:0;"></div>';
+                    html += '<div style="position:absolute;left:' + (x * cs) + 'px;top:' + (y * cs) + 'px;width:' + cs + 'px;height:' + cs + 'px;background-image:url(\'' + floorBg + '\');background-size:cover;background-position:center;transform:' + rowVariants[y] + ';z-index:0;"></div>';
                 }
             }
         }
@@ -313,10 +323,10 @@ const SherwoodUI = {
 
         // === ВЕРХ: КАРТОЧКА ВРАГА ===
         html += '<div style="text-align:center;flex-shrink:0;">';
-        html += '<div style="position:relative;display:inline-block;">';
-        html += '<img src="assets/interface/frame_of_beasts.png" style="width:180px;height:180px;position:absolute;top:-10px;left:-10px;z-index:1;pointer-events:none;">';
-        html += '<img src="assets/all_beasts/' + (b.enemyImage || 'image (1).png') + '" id="enemy-card" style="width:160px;height:160px;object-fit:contain;position:relative;z-index:0;border-radius:12px;" onerror="this.src=\'assets/interface/labyrinth_of_icons.png\'">';
-        html += '</div>';
+        html += '<div style="position:relative;display:inline-block;width:180px;height:180px;">';
+html += '<img src="assets/interface/frame_of_beasts.png" style="width:180px;height:180px;position:absolute;top:0;left:0;z-index:0;pointer-events:none;">';
+html += '<img src="assets/all_beasts/' + (b.enemyImage || 'image (1).png') + '" id="enemy-card" style="width:160px;height:160px;object-fit:contain;position:absolute;top:10px;left:10px;z-index:1;border-radius:12px;" onerror="this.src=\'assets/interface/labyrinth_of_icons.png\'">';
+html += '</div>';
         html += '<div style="color:#f44336;font-weight:bold;font-size:1.1em;margin-top:4px;">' + (b.enemyName || 'Монстр') + (b.isBoss ? ' 👑' : '') + '</div>';
         // HP врага
         html += '<div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:4px;">';
