@@ -17,11 +17,8 @@ Sherwood.Dungeon = {
             name: 'Проклятая чаща',
             icon: '🌲',
             monsters: {
-                // Этажи 1-3
                 easy: ['image (1).png', 'image (3).png', 'image (74).png'],
-                // Этажи 4-6
                 medium: ['image (9).png', 'image (29).png', 'image (75).png'],
-                // Этаж 7 (босс)
                 boss: 'image (15).png'
             },
             bossName: 'Проклятый титан Леший',
@@ -133,14 +130,10 @@ Sherwood.Dungeon = {
         const progress = this._playerProgress[dungeonId];
         if (!progress) return;
 
-        // Даём звезду за прохождение уровня
-        if (level >= progress.level) {
-            progress.stars += 1;
-            // Открываем следующий уровень если набрано достаточно звёзд
-            if (progress.stars >= 2 && level >= progress.level) {
-                progress.level = Math.min(level + 1, this.DUNGEONS[dungeonId].floors);
-                progress.stars = 0; // Сбрасываем звёзды для нового уровня
-            }
+        progress.stars += 1;
+        if (progress.stars >= 2 && level >= progress.level) {
+            progress.level = Math.min(level + 1, this.DUNGEONS[dungeonId].floors);
+            progress.stars = 0;
         }
 
         this._saveProgress();
@@ -152,8 +145,12 @@ Sherwood.Dungeon = {
 
     generateDungeon(dungeonId, level) {
         const player = Sherwood.getPlayer();
-        if (!player || player.dungeon.tickets <= 0) return null;
-        player.dungeon.tickets--;
+        if (!player) return null;
+        if (player.dungeon?.tickets <= 0) {
+            Sherwood.dispatch({ type: 'DUNGEON_ERROR', payload: { message: 'Нет билетов!' } });
+            return null;
+        }
+        if (player.dungeon) player.dungeon.tickets--;
 
         const levelData = this.getDungeonLevel(dungeonId, level);
         if (!levelData) return null;
@@ -166,7 +163,6 @@ Sherwood.Dungeon = {
             closedTiles.push('assets/icons/Dungeon tiles' + i + '.jpeg');
         }
 
-        // Создаём сетку
         for (let y = 0; y < size; y++) {
             grid[y] = [];
             for (let x = 0; x < size; x++) {
@@ -184,7 +180,6 @@ Sherwood.Dungeon = {
             }
         }
 
-        // Генерируем комнаты
         const rooms = this._generateRooms(size);
         rooms.forEach(room => {
             for (let y = room.y; y < room.y + room.h; y++) {
@@ -198,7 +193,6 @@ Sherwood.Dungeon = {
             }
         });
 
-        // Коридоры
         for (let i = 0; i < rooms.length - 1; i++) {
             const a = rooms[i],
                 b = rooms[i + 1];
@@ -209,7 +203,6 @@ Sherwood.Dungeon = {
             );
         }
 
-        // Старт
         const startRoom = rooms[0];
         const startX = startRoom.x + Math.floor(startRoom.w / 2);
         const startY = startRoom.y + Math.floor(startRoom.h / 2);
@@ -218,7 +211,6 @@ Sherwood.Dungeon = {
         grid[startY][startX].visible = true;
         grid[startY][startX].tile = floorTile;
 
-        // Выход
         const exitRoom = rooms[rooms.length - 1];
         const exitX = exitRoom.x + Math.floor(exitRoom.w / 2);
         const exitY = exitRoom.y + Math.floor(exitRoom.h / 2);
@@ -226,10 +218,8 @@ Sherwood.Dungeon = {
         grid[exitY][exitX].walkable = true;
         grid[exitY][exitX].tile = floorTile;
 
-        // Размещаем монстров (скрытых)
         this._placeMonsters(grid, rooms, levelData);
 
-        // Размещаем сундуки
         this._placeChests(grid, rooms, 3);
 
         this._dungeon = {
@@ -315,7 +305,6 @@ Sherwood.Dungeon = {
         let placed = 0;
         const maxMonsters = levelData.isBossLevel ? 8 : 6;
 
-        // Собираем все клетки, где можно разместить монстров
         const cells = [];
         for (const room of rooms) {
             if (room === startRoom || room === exitRoom) continue;
@@ -328,7 +317,6 @@ Sherwood.Dungeon = {
             }
         }
 
-        // Перемешиваем
         for (let i = cells.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
             [cells[i], cells[j]] = [cells[j], cells[i]];
@@ -344,7 +332,6 @@ Sherwood.Dungeon = {
             grid[cell.y][cell.x].hasMonster = true;
             grid[cell.y][cell.x].monsterId = monsterFile;
             grid[cell.y][cell.x].isBoss = isBoss;
-            // Клетка остаётся walkable, но при входе на неё начинается бой
         }
     },
 
@@ -440,9 +427,7 @@ Sherwood.Dungeon = {
 
         this._updateVisibility(nextX, nextY);
 
-        // Проверяем, что на клетке
         if (cell.hasMonster) {
-            // Начинаем бой
             return {
                 success: true,
                 type: 'battle',
@@ -457,6 +442,16 @@ Sherwood.Dungeon = {
             this._dungeon.chestsOpened++;
             Sherwood.addResource('gold', cell.reward.gold);
             Sherwood.addResource('silver', cell.reward.silver);
+
+            // Шанс на предмет
+            if (Math.random() < 0.25) {
+                const items = Sherwood.EquipmentDB?.items || [];
+                const item = items[Math.floor(Math.random() * items.length)];
+                if (item) {
+                    Sherwood.Bag?.addItem?.({ ...item });
+                }
+            }
+
             return {
                 success: true,
                 type: 'chest',
@@ -490,7 +485,6 @@ Sherwood.Dungeon = {
         Sherwood.addResource('gold', baseGold);
         Sherwood.addExp(baseExp);
 
-        // Если босс убит — открываем следующий уровень
         if (d.isBossLevel && d.monstersKilled > 0) {
             this.completeLevel(d.dungeonId, d.level);
         }
@@ -507,18 +501,15 @@ Sherwood.Dungeon = {
     leaveDungeon() {
         if (this._dungeon) {
             this._dungeon.status = 'abandoned';
-            // Ничего не теряем
         }
         this._dungeon = null;
     },
 
-    // Вызывается после победы над монстром
     onMonsterDefeated(tile) {
         if (!this._dungeon || !tile) return;
         tile.hasMonster = false;
         tile.monsterId = null;
         tile.isBoss = false;
         this._dungeon.monstersKilled++;
-        // Клетка остаётся проходимой
     }
 };
