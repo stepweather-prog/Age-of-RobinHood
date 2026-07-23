@@ -94,26 +94,27 @@
             z-index: 0;
         }
 
+        /* ===== АРКА (ШИРЕ) ===== */
         .arch-layer {
             position: absolute;
             bottom: 8%;
             left: 50%;
             transform: translateX(-50%);
-            width: 90%;
+            width: 95%;
             height: 65%;
             background: url('assets/interface/staircase_with_an_arch.png') bottom/contain no-repeat;
             z-index: 3;
             pointer-events: none;
         }
 
-        /* ===== ГЕРОЙ + ВИДЕО-РАМКА (УМЕНЬШЕНА) ===== */
+        /* ===== ГЕРОЙ + ВИДЕО-РАМКА ===== */
         .hero-frame {
             position: absolute;
-            bottom: 30%;
+            bottom: 18%;
             left: 50%;
             transform: translateX(-50%);
             width: 32%;
-            height: 27%;
+            height: 32%;
             z-index: 4;
             display: flex;
             align-items: center;
@@ -142,8 +143,8 @@
         .hero-frame img {
             position: relative;
             z-index: 1;
-            width: 100%;
-            height: 100%;
+            width: 95%;
+            height: 95%;
             object-fit: contain;
             filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.15));
         }
@@ -215,6 +216,7 @@
             pointer-events: all;
         }
 
+        /* ===== ВЕРХНЯЯ ПАНЕЛЬ ===== */
         .top-panel {
             position: absolute;
             top: 3%;
@@ -227,23 +229,23 @@
             gap: 4px;
         }
         .top-panel .resource {
-            width: 25%;
+            width: 28%;
             display: flex;
             flex-direction: column;
             align-items: center;
         }
         .top-panel .resource img {
             width: 100%;
-            max-width: 90px;
+            max-width: 80px;
             height: auto;
             display: block;
         }
         .top-panel .resource span {
             color: #ffd700;
-            font-size: 0.75em;
+            font-size: 0.8em;
             text-shadow: 0 0 10px rgba(0, 0, 0, 0.9);
             font-weight: bold;
-            margin-top: -8px;
+            margin-top: -6px;
             white-space: nowrap;
         }
         .top-panel .resource.silver span {
@@ -259,8 +261,8 @@
             position: relative;
         }
         .top-panel .exp-bar img {
-            width: 125%;
-            max-width: 150px;
+            width: 100%;
+            max-width: 140px;
             height: auto;
             display: block;
         }
@@ -281,16 +283,16 @@
         /* ===== КНОПКИ НАД АРКОЙ (РАЗМЕР КАК У ОСТАЛЬНЫХ) ===== */
         .top-actions {
             position: absolute;
-            top: 25%;
-            left: 62%;
+            top: 16%;
+            left: 42%;
             z-index: 10;
             display: flex;
             gap: 8px;
             pointer-events: none;
         }
         .top-actions .btn {
-            width: 100px;
-            height: 34px;
+            width: 44px;
+            height: 44px;
             cursor: pointer;
             background: rgba(0, 0, 0, 0.4);
             border: 1px solid rgba(201, 168, 76, 0.2);
@@ -376,10 +378,10 @@
             transform: scale(0.9);
         }
 
-        /* ===== НИЖНИЕ СТАТЫ (ВПЛОТНУЮ БЕЗ ПРОБЕЛА) ===== */
+        /* ===== НИЖНИЕ СТАТЫ (ВПЛОТНУЮ) ===== */
         .bottom-stats {
             position: absolute;
-            bottom: -2%;
+            bottom: -5%;
             left: 10%;
             right: 10%;
             z-index: 10;
@@ -390,7 +392,7 @@
             padding-bottom: 0px;
         }
         .bottom-stats .stat-block {
-            width: 40%;
+            width: 46%;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -523,7 +525,7 @@
             .left-buttons .btn .label, .right-buttons .btn .label { font-size: 0.4em; }
             .loading-screen .play-btn { width: 100px; height: 100px; margin-top: 80px; }
             .statue-left, .statue-right { width: 20%; }
-            .top-actions { left: 38%; top: 18%; }
+            .top-actions { left: 38%; top: 15%; }
             .top-actions .btn { width: 36px; height: 36px; }
         }
     </style>
@@ -564,7 +566,6 @@
                 <div class="resource silver"><img src="assets/interface/silver_plaque.png" alt="Серебро"><span id="silver-display">0</span></div>
             </div>
 
-            <!-- КНОПКИ НАД АРКОЙ -->
             <div class="top-actions">
                 <div class="btn" data-action="settings"><img src="assets/all_buttons/settings.png" alt="Настройки"></div>
                 <div class="btn" data-action="profile"><img src="assets/all_buttons/player_profile.png" alt="Профиль"></div>
