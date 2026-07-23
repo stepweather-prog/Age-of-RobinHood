@@ -110,14 +110,14 @@
             pointer-events: none;
         }
 
-        /* ===== ГЕРОЙ + РАМКА (УМЕНЬШЕНА) ===== */
+        /* ===== ГЕРОЙ + РАМКА (ПОДНЯТЫ, ГЕРОЙ УВЕЛИЧЕН) ===== */
         .hero-frame {
             position: absolute;
-            bottom: 18%;
+            bottom: 22%;
             left: 50%;
             transform: translateX(-50%);
-            width: 28%;
-            height: 28%;
+            width: 30%;
+            height: 30%;
             z-index: 4;
             display: flex;
             align-items: center;
@@ -146,8 +146,8 @@
         .hero-frame img {
             position: relative;
             z-index: 1;
-            width: 85%;
-            height: 85%;
+            width: 95%;
+            height: 95%;
             object-fit: contain;
             filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.15));
         }
@@ -221,7 +221,7 @@
             pointer-events: all;
         }
 
-        /* ===== ВЕРХНЯЯ ПАНЕЛЬ (ЦИФРЫ ПОВЕРХ ИКОНОК) ===== */
+        /* ===== ВЕРХНЯЯ ПАНЕЛЬ ===== */
         .top-panel {
             position: absolute;
             top: 3%;
@@ -234,7 +234,7 @@
             gap: 4px;
         }
         .top-panel .resource {
-            width: 22%;
+            width: 25%;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -242,19 +242,16 @@
         }
         .top-panel .resource img {
             width: 100%;
-            max-width: 50px;
+            max-width: 60px;
             height: auto;
             display: block;
         }
         .top-panel .resource span {
-            position: absolute;
-            bottom: -2px;
-            left: 50%;
-            transform: translateX(-50%);
             color: #ffd700;
-            font-size: 0.7em;
+            font-size: 0.75em;
             text-shadow: 0 0 10px rgba(0, 0, 0, 0.9);
             font-weight: bold;
+            margin-top: 2px;
             white-space: nowrap;
         }
         .top-panel .resource.silver span {
@@ -275,7 +272,7 @@
             height: auto;
             display: block;
         }
-        .top-panel .exp-bar .level-text {
+        .top-panel .exp-bar .exp-text {
             position: absolute;
             top: 50%;
             left: 50%;
@@ -285,6 +282,8 @@
             text-shadow: 0 0 10px rgba(0, 0, 0, 0.9);
             letter-spacing: 1px;
             white-space: nowrap;
+            width: 100%;
+            text-align: center;
         }
 
         /* ===== КНОПКИ ===== */
@@ -347,7 +346,7 @@
             transform: scale(0.9);
         }
 
-        /* ===== НИЖНИЕ СТАТЫ (ВПИСАНЫ В ДОСКИ) ===== */
+        /* ===== НИЖНИЕ СТАТЫ ===== */
         .bottom-stats {
             position: absolute;
             bottom: -5%;
@@ -384,39 +383,39 @@
         }
         .bottom-stats .stat-block .stat-icons {
             position: absolute;
-            top: 25%;
+            top: 30%;
             left: 50%;
             transform: translateX(-50%);
             display: flex;
-            gap: 25px;
+            gap: 20px;
             align-items: center;
             z-index: 1;
         }
         .bottom-stats .stat-block .stat-icons img {
-            width: 28px;
-            height: 28px;
+            width: 30px;
+            height: 30px;
             object-fit: contain;
         }
         .bottom-stats .stat-block .stat-values {
             position: absolute;
-            bottom: 15%;
+            top: 55%;
             left: 50%;
             transform: translateX(-50%);
             display: flex;
             justify-content: center;
-            gap: 25px;
-            font-size: 0.7em;
+            gap: 20px;
+            font-size: 0.8em;
             color: #e0c080;
             text-shadow: 0 0 10px rgba(0, 0, 0, 0.9);
             width: 80%;
             z-index: 1;
+            font-weight: bold;
         }
         .bottom-stats .stat-block .stat-values span {
-            background: rgba(0, 0, 0, 0.4);
-            padding: 1px 10px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 2px 12px;
             border-radius: 4px;
             border: 1px solid rgba(201, 168, 76, 0.1);
-            font-weight: bold;
         }
         .stat-values .attack {
             color: #f44336;
@@ -496,21 +495,21 @@
 
         @media (max-width: 400px) {
             .top-panel .resource span {
-                font-size: 0.55em;
+                font-size: 0.6em;
             }
-            .top-panel .exp-bar .level-text {
+            .top-panel .exp-bar .exp-text {
                 font-size: 0.5em;
             }
             .bottom-stats .stat-block .stat-values {
-                font-size: 0.55em;
-                gap: 15px;
+                font-size: 0.6em;
+                gap: 12px;
             }
             .bottom-stats .stat-block .stat-icons img {
-                width: 20px;
-                height: 20px;
+                width: 22px;
+                height: 22px;
             }
             .bottom-stats .stat-block .stat-icons {
-                gap: 15px;
+                gap: 14px;
             }
             .left-buttons .btn .label,
             .right-buttons .btn .label {
@@ -557,7 +556,10 @@
         <div class="main-interface" id="mainInterface">
             <div class="top-panel">
                 <div class="resource"><img src="assets/interface/gold_plate.png" alt="Золото"><span id="gold-display">0</span></div>
-                <div class="exp-bar"><img src="assets/interface/hero_experience_scale.png" alt="Опыт"><span class="level-text">УРОВЕНЬ <span id="level-display">1</span></span></div>
+                <div class="exp-bar">
+                    <img src="assets/interface/hero_experience_scale.png" alt="Опыт">
+                    <span class="exp-text"><span id="exp-display">0</span> / <span id="exp-max-display">100</span> XP</span>
+                </div>
                 <div class="resource silver"><img src="assets/interface/silver_plaque.png" alt="Серебро"><span id="silver-display">0</span></div>
             </div>
 
@@ -639,11 +641,11 @@
                 });
             },
             updateDisplay(data) {
-                const d = data || { gold: 1234, silver: 5678, level: 5, attack: 124, defense: 87, agility: 43, hp: 320,
-                        maxHp: 500 };
+                const d = data || { gold: 1234, silver: 5678, level: 5, exp: 350, expMax: 500, attack: 124, defense: 87, agility: 43, hp: 320, maxHp: 500 };
                 document.getElementById('gold-display').textContent = this.formatNumber(d.gold);
                 document.getElementById('silver-display').textContent = this.formatNumber(d.silver);
-                document.getElementById('level-display').textContent = d.level;
+                document.getElementById('exp-display').textContent = this.formatNumber(d.exp);
+                document.getElementById('exp-max-display').textContent = this.formatNumber(d.expMax);
                 document.querySelector('.stat-values .attack').textContent = d.attack;
                 document.querySelector('.stat-values .defense').textContent = d.defense;
                 document.querySelector('.stat-values .agility').textContent = d.agility;
