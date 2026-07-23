@@ -110,14 +110,14 @@
             pointer-events: none;
         }
 
-        /* ===== ГЕРОЙ + РАМКА (ПОДНЯТЫ, ГЕРОЙ УВЕЛИЧЕН) ===== */
+        /* ===== ГЕРОЙ + РАМКА ===== */
         .hero-frame {
             position: absolute;
-            bottom: 22%;
+            bottom: 18%;
             left: 50%;
             transform: translateX(-50%);
-            width: 30%;
-            height: 30%;
+            width: 35%;
+            height: 35%;
             z-index: 4;
             display: flex;
             align-items: center;
@@ -238,7 +238,6 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            position: relative;
         }
         .top-panel .resource img {
             width: 100%;
@@ -251,7 +250,7 @@
             font-size: 0.75em;
             text-shadow: 0 0 10px rgba(0, 0, 0, 0.9);
             font-weight: bold;
-            margin-top: 2px;
+            margin-top: -2px;
             white-space: nowrap;
         }
         .top-panel .resource.silver span {
@@ -563,24 +562,26 @@
                 <div class="resource silver"><img src="assets/interface/silver_plaque.png" alt="Серебро"><span id="silver-display">0</span></div>
             </div>
 
+            <!-- ЛЕВЫЕ КНОПКИ (ВКЛЮЧАЯ НАСТРОЙКИ) -->
             <div class="left-buttons">
+                <div class="btn" data-action="settings"><img src="assets/all_buttons/settings.png" alt="Настройки"><span class="label">Настройки</span></div>
                 <div class="btn" data-action="quest"><img src="assets/all_buttons/home.png" alt="Квест"><span class="label">Квест</span></div>
                 <div class="btn" data-action="subway"><img src="assets/all_buttons/subway.png" alt="Подземка"><span class="label">Подземка</span></div>
                 <div class="btn" data-action="raid"><img src="assets/all_buttons/raid.png" alt="Рейд"><span class="label">Рейд</span></div>
                 <div class="btn" data-action="portal"><img src="assets/all_buttons/portal.png" alt="Портал"><span class="label">Портал</span></div>
                 <div class="btn" data-action="arena"><img src="assets/all_buttons/arena.png" alt="Арена"><span class="label">Арена</span></div>
                 <div class="btn" data-action="tavern"><img src="assets/all_buttons/tavern.png" alt="Таверна"><span class="label">Таверна</span></div>
-                <div class="btn" data-action="settings"><img src="assets/all_buttons/settings.png" alt="Настройки"><span class="label">Настройки</span></div>
             </div>
 
+            <!-- ПРАВЫЕ КНОПКИ (ВКЛЮЧАЯ ПРОФИЛЬ) -->
             <div class="right-buttons">
+                <div class="btn" data-action="profile"><img src="assets/all_buttons/player_profile.png" alt="Профиль"><span class="label">Профиль</span></div>
                 <div class="btn" data-action="daily"><img src="assets/all_buttons/daily_quests.png" alt="Ежедневные"><span class="label">Ежедневные</span></div>
                 <div class="btn" data-action="training"><img src="assets/all_buttons/training.png" alt="Тренировка"><span class="label">Тренировка</span></div>
                 <div class="btn" data-action="forge"><img src="assets/all_buttons/forge.png" alt="Кузница"><span class="label">Кузница</span></div>
                 <div class="btn" data-action="bag"><img src="assets/all_buttons/hero_bag.png" alt="Сумка"><span class="label">Сумка</span></div>
                 <div class="btn" data-action="market"><img src="assets/all_buttons/sherwood_market.png" alt="Рынок"><span class="label">Рынок</span></div>
                 <div class="btn" data-action="bestiary"><img src="assets/all_buttons/bestiary.png" alt="Бестиарий"><span class="label">Бестиарий</span></div>
-                <div class="btn" data-action="profile"><img src="assets/all_buttons/player_profile.png" alt="Профиль"><span class="label">Профиль</span></div>
             </div>
 
             <div class="bottom-stats">
@@ -649,23 +650,23 @@
                 document.querySelector('.stat-values .attack').textContent = d.attack;
                 document.querySelector('.stat-values .defense').textContent = d.defense;
                 document.querySelector('.stat-values .agility').textContent = d.agility;
-                document.querySelector('.stat-values .hp').textContent = d.hp + '/' + d.maxHp;
+                document.querySelector('.stat-values .hp').textContent = d.hp;
             },
             formatNumber(n) { return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' '); },
+            settings() { this.showPlaceholder('⚙️ Настройки', 'settings_page.jpeg'); },
             quest() { this.showPlaceholder('📜 Квесты', 'quest_chapter_1.jpeg'); },
             subway() { this.showPlaceholder('🏚️ Подземка', 'underground_1_floor_1.jpg'); },
             raid() { this.showPlaceholder('⚔️ Рейд', 'subway_battle3.jpeg'); },
             portal() { this.showPlaceholder('🌀 Порталы', 'portal_1.jpeg'); },
             arena() { this.showPlaceholder('🏟️ Арена', 'arena.jpeg'); },
             tavern() { this.showPlaceholder('🍺 Таверна', 'tavern.jpeg'); },
+            profile() { this.showPlaceholder('👤 Профиль', 'character_page.jpeg'); },
             daily() { this.showPlaceholder('📋 Ежедневные задания', 'tasks.jpeg'); },
             training() { this.showPlaceholder('💪 Тренировка', 'training.jpeg'); },
             forge() { this.showPlaceholder('⚒️ Кузница', 'forge.jpeg'); },
             bag() { this.showPlaceholder('🎒 Сумка', 'bag.jpeg'); },
             market() { this.showPlaceholder('💰 Рынок', 'market.jpeg'); },
             bestiary() { this.showPlaceholder('📖 Бестиарий', 'bestiary.jpeg'); },
-            profile() { this.showPlaceholder('👤 Профиль', 'character_page.jpeg'); },
-            settings() { this.showPlaceholder('⚙️ Настройки', 'settings_page.jpeg'); },
             showPlaceholder(title, bg) {
                 this.mainInterface.classList.remove('active');
                 const old = document.querySelector('.placeholder-screen');
