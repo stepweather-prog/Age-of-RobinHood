@@ -148,6 +148,7 @@ Sherwood.Dungeon = {
         d.movesLeft--;
         // Туман
         d.fog[ny][nx] = false;
+        d.grid[ny][nx].open = true;
         var adj = [[0,-1],[0,1],[-1,0],[1,0]];
         for (var i = 0; i < 4; i++) {
             var ax = nx + adj[i][0], ay = ny + adj[i][1];
