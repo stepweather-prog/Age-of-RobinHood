@@ -1,5 +1,5 @@
 /**
- * Sherwood UI — Контроллер интерфейса (v2 — слои)
+ * Sherwood UI — Контроллер интерфейса
  */
 
 const SherwoodUI = {
@@ -9,20 +9,20 @@ const SherwoodUI = {
 
     _bg: {
         main: 'assets/backgrounds/homepage_screen.jpeg',
-        dungeon_select: 'assets/backgrounds/underground_1_floor_1.jpg',
         bag: 'assets/backgrounds/bag.jpeg',
         profile: 'assets/backgrounds/character_page.jpeg',
-        bestiary: 'assets/backgrounds/bestiary.jpeg',
+        bestiary: 'assets/backgrounds/character_page.jpeg',
         quests: 'assets/backgrounds/skill_page.jpeg',
         training: 'assets/backgrounds/training.jpeg',
         forge: 'assets/backgrounds/forge.jpeg',
         tavern: 'assets/backgrounds/tavern.jpeg',
         market: 'assets/backgrounds/market.jpeg',
         arena: 'assets/backgrounds/arena.jpeg',
-        raid: 'assets/backgrounds/arena.jpeg',
+        raid: 'assets/backgrounds/background_raid.png',
         settings: 'assets/backgrounds/settings_page.jpeg',
         daily: 'assets/backgrounds/tasks.jpeg',
         portal: 'assets/backgrounds/portal_1.jpeg',
+        dungeon_select: 'assets/backgrounds/underground_1_floor_1.jpg',
         dungeon_forest: 'assets/backgrounds/underground_1_floor_1.jpg',
         dungeon_swamp: 'assets/backgrounds/underground_2_floor_1.jpeg',
         dungeon_cave: 'assets/backgrounds/underground_3_floor_1.jpeg',
@@ -40,18 +40,18 @@ const SherwoodUI = {
     _musicEnabled: true,
 
     _audioFiles: {
-        'forest_ambient': 'assets/sounds/forest_ambient.ogg',
-        'dungeon_ambient': 'assets/sounds/dungeon_ambient.wav',
+        'forest_ambient': 'assets/sounds/main_topic.ogg',
+        'dungeon_ambient': 'assets/sounds/subway_1.wav',
         'tavern_ambient': 'assets/sounds/tavern_ambient.wav',
         'click': 'assets/sounds/button_click.ogg',
-        'shot': 'assets/sounds/shot.mp3',
-        'arrow_hit': 'assets/sounds/arrow_hit.wav',
-        'victory': 'assets/sounds/victory.wav',
+        'shot': 'assets/sounds/normal_hit.flac',
+        'arrow_hit': 'assets/sounds/normal_hit.flac',
+        'victory': 'assets/sounds/level_completed.wav',
         'defeat': 'assets/sounds/defeat.wav',
         'levelup': 'assets/sounds/levelup.wav',
-        'chest_open': 'assets/sounds/chest_open.wav',
-        'trap': 'assets/sounds/trap_trigger.wav',
-        'dungeon_enter': 'assets/sounds/dungeon_enter.wav'
+        'chest_open': 'assets/sounds/chest_opens.wav',
+        'trap': 'assets/sounds/trap.wav',
+        'dungeon_enter': 'assets/sounds/subway_1.wav'
     },
 
     // ============================================================
@@ -93,7 +93,7 @@ const SherwoodUI = {
         }
 
         this._loadAudioSettings();
-        console.log('🏹 Sherwood UI v2 инициализирован!');
+        console.log('🏹 Sherwood UI инициализирован!');
     },
 
     // ============================================================
@@ -165,7 +165,6 @@ const SherwoodUI = {
     // ============================================================
 
     bindButtons() {
-        // Кнопки главного экрана (data-action)
         document.querySelectorAll('#mainInterface .btn[data-action]').forEach(el => {
             el.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -232,45 +231,33 @@ const SherwoodUI = {
     // ============================================================
 
     loadHome() {
-        // Скрываем слой экранов
         if (this._screenLayer) {
             this._screenLayer.style.display = 'none';
             this._screenLayer.innerHTML = '';
         }
 
-        // Показываем элементы главного экрана
         this._mainElements.forEach(sel => {
             document.querySelectorAll(sel).forEach(el => {
                 el.style.display = '';
             });
         });
 
-        // Возвращаем фон контейнера
         this.container.style.background = '';
         this._playMusic('forest_ambient');
         this.updateDisplay();
         console.log('🏠 Главный экран');
     },
 
-    /**
-     * Открыть экран. Всегда используй этот метод вместо прямого innerHTML.
-     * @param {string} title - заголовок экрана
-     * @param {string} bgKey - ключ из this._bg (или прямой путь к файлу)
-     * @param {string} contentHTML - содержимое экрана
-     */
     _openScreen(title, bgKey, contentHTML) {
-        // Скрываем главный интерфейс
         this._mainElements.forEach(sel => {
             document.querySelectorAll(sel).forEach(el => {
                 el.style.display = 'none';
             });
         });
 
-        // Определяем фон
         let bgPath = this._bg[bgKey] || bgKey;
         this.container.style.background = `url('${bgPath}') center/cover no-repeat`;
 
-        // Рендерим в слой
         if (this._screenLayer) {
             this._screenLayer.innerHTML = `
                 <div style="min-height:100%;background:rgba(0,0,0,0.7);padding:16px;display:flex;flex-direction:column;">
@@ -372,7 +359,6 @@ const SherwoodUI = {
         const d = this._dungeon || ((typeof Sherwood !== 'undefined' && Sherwood.Dungeon && Sherwood.Dungeon.getDungeon) ? Sherwood.Dungeon.getDungeon() : null);
         if (!d) { this.showDungeon(); return; }
 
-        // Фон по типу подземки
         const bgMap = {
             forest: this._bg.dungeon_forest,
             swamp: this._bg.dungeon_swamp,
@@ -380,7 +366,6 @@ const SherwoodUI = {
         };
         this.container.style.background = `url('${bgMap[d.dungeonId] || this._bg.dungeon_forest}') center/cover no-repeat`;
 
-        // Скрываем главный интерфейс
         this._mainElements.forEach(sel => {
             document.querySelectorAll(sel).forEach(el => el.style.display = 'none');
         });
@@ -389,9 +374,10 @@ const SherwoodUI = {
         const cellSize = Math.min(50, Math.floor((this.container.clientWidth - 32) / size));
         const grid = d.grid || [];
 
-        // Правильные пути к тайлам
-        const dungeonTileFolder = d.dungeonId || 'forest';
-        const tileBasePath = `assets/dungeon_tiles/${dungeonTileFolder}`;
+        const tileFolder = d.tileFolder || 'dungeon1';
+        const tileExt = d.tileExt || '.jpeg';
+        const tilePrefix = d.tilePrefix || 'tiles';
+        const tileBasePath = `assets/dungeon_tiles/${tileFolder}`;
 
         let gridHtml = '';
 
@@ -402,22 +388,15 @@ const SherwoodUI = {
                 const isPlayer = d.playerPos && d.playerPos.x === x && d.playerPos.y === y;
                 const isVisible = cell.visible || cell.explored;
 
-                // Тайл по умолчанию — первый из подземки
-                let bgImage = `${tileBasePath}/tiles1.jpeg`;
-                if (dungeonTileFolder === 'swamp') bgImage = `${tileBasePath}/tiles2.1.png`;
-                if (dungeonTileFolder === 'cave') bgImage = `${tileBasePath}/tiles3.1.png`;
-
+                let bgImage = `${tileBasePath}/${tilePrefix}1${tileExt}`;
                 let content = '';
                 let borderColor = 'rgba(255,255,255,0.05)';
                 let extraStyle = '';
                 let clickHandler = '';
 
                 if (isVisible) {
-                    // Случайный тайл пола
-                    const tileNum = 1 + Math.floor(Math.random() * 14);
-                    if (dungeonTileFolder === 'forest') bgImage = `${tileBasePath}/tiles${tileNum}.jpeg`;
-                    else if (dungeonTileFolder === 'swamp') bgImage = `${tileBasePath}/tiles2.${tileNum}.png`;
-                    else bgImage = `${tileBasePath}/tiles3.${tileNum}.png`;
+                    const tileNum = 1 + ((x * 7 + y * 3) % 14);
+                    bgImage = `${tileBasePath}/${tilePrefix}${tileNum}${tileExt}`;
 
                     borderColor = 'rgba(255,255,255,0.1)';
 
@@ -470,7 +449,6 @@ const SherwoodUI = {
 
         const hp = (typeof Sherwood !== 'undefined' && Sherwood.getPlayer) ? (Sherwood.getPlayer().stats?.hp || 0) : 0;
 
-        // Рендерим подземку в слой
         if (this._screenLayer) {
             this._screenLayer.innerHTML = `
                 <div style="min-height:100%;background:rgba(0,0,0,0.5);padding:12px;display:flex;flex-direction:column;align-items:center;">
@@ -752,7 +730,6 @@ const SherwoodUI = {
             return;
         }
 
-        // Циклическая стоимость: каждые 4 раза серебро, 5-й золото
         const cyclePos = (current + 1) % 5;
         const isGold = cyclePos === 0;
         const cost = isGold ? 5 : 200;
@@ -879,9 +856,13 @@ const SherwoodUI = {
 
     _exitGame() {
         if (confirm('Вы уверены, что хотите выйти?')) {
-            if (typeof Sherwood !== 'undefined' && Sherwood.saveGame) Sherwood.saveGame();
-            window.location.href = 'about:blank';
+            if (typeof Sherwood !== 'undefined' && Sherwood.saveGameNow) {
+                Sherwood.saveGameNow();
+            } else if (typeof Sherwood !== 'undefined' && Sherwood.saveGame) {
+                Sherwood.saveGame();
+            }
             this._stopMusic();
+            window.location.href = 'about:blank';
         }
     },
 
