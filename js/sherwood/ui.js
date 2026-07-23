@@ -287,31 +287,65 @@ const SherwoodUI = {
         this._playMusic('forest_ambient');
         this.showDungeon();
     },
-        // ========== БОЙ ==========
+            // ========== БОЙ ==========
     _showCombatScreen: function() {
         var b = Sherwood.Combat.getState();
         if (!b) { this._renderDungeon(); return; }
-        var ehp = Math.round((b.enemyHp / b.enemyMaxHp) * 100);
-        var php = Math.round((b.playerHp / b.playerMaxHp) * 100);
         var cd = b.cooldowns || {};
-        var h = "<div style=\"text-align:center;\">";
-        h += "<div style=\"color:#ff6a00;\">" + (b.isBoss ? '👑 БОСС' : '👹 Монстр') + "</div>";
-        h += "<div style=\"margin:12px 0;\"><div style=\"font-size:4em;\">" + (b.isBoss ? '👑' : '👹') + "</div>";
-        h += "<div style=\"background:rgba(0,0,0,0.5);border-radius:6px;height:14px;margin:4px 20%;overflow:hidden;\"><div style=\"background:#f44336;height:100%;width:" + ehp + "%;\"></div></div>";
-        h += "<div style=\"color:#aaa;font-size:0.7em;\">❤️ " + b.enemyHp + "/" + b.enemyMaxHp + "</div></div>";
-        h += "<div style=\"color:#ffd700;\">⚔️ VS ⚔️</div>";
-        h += "<div style=\"margin:12px 0;\"><div style=\"color:#4caf50;\">❤️ " + b.playerHp + "/" + b.playerMaxHp + "</div>";
-        h += "<div style=\"background:rgba(0,0,0,0.5);border-radius:6px;height:14px;margin:4px 20%;overflow:hidden;\"><div style=\"background:#4caf50;height:100%;width:" + php + "%;\"></div></div></div>";
-        h += "<button onclick=\"SherwoodUI._combatAttack()\" style=\"background:#c9a040;border:none;border-radius:8px;padding:12px 30px;color:#000;font-weight:bold;cursor:pointer;font-family:'Georgia',serif;margin:4px;\">⚔️ Атака</button>";
-        h += "<div style=\"display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-top:4px;\">";
-        h += "<button onclick=\"SherwoodUI._combatSkill('power_shot')\" style=\"background:" + (cd.power_shot ? '#555' : '#ff5722') + ";border:none;border-radius:8px;padding:8px 12px;color:#fff;cursor:pointer;font-family:'Georgia',serif;font-size:0.8em;\">💥 Мощный" + (cd.power_shot ? ' ⌛' : '') + "</button>";
-        h += "<button onclick=\"SherwoodUI._combatSkill('triple_shot')\" style=\"background:" + (cd.triple_shot ? '#555' : '#2196f3') + ";border:none;border-radius:8px;padding:8px 12px;color:#fff;cursor:pointer;font-family:'Georgia',serif;font-size:0.8em;\">🏹 Тройной" + (cd.triple_shot ? ' ⌛' : '') + "</button>";
-        h += "<button onclick=\"SherwoodUI._combatSkill('poison_arrow')\" style=\"background:" + (cd.poison_arrow ? '#555' : '#4caf50') + ";border:none;border-radius:8px;padding:8px 12px;color:#fff;cursor:pointer;font-family:'Georgia',serif;font-size:0.8em;\">☠️ Яд" + (cd.poison_arrow ? ' ⌛' : '') + "</button>";
-        h += "<button onclick=\"SherwoodUI._combatSkill('stunning_shot')\" style=\"background:" + (cd.stunning_shot ? '#555' : '#9c27b0') + ";border:none;border-radius:8px;padding:8px 12px;color:#fff;cursor:pointer;font-family:'Georgia',serif;font-size:0.8em;\">💫 Оглуш" + (cd.stunning_shot ? ' ⌛' : '') + "</button>";
-        h += "</div>";
-        h += "<button onclick=\"SherwoodUI._combatFlee()\" style=\"margin-top:8px;background:rgba(244,67,54,0.2);border:1px solid #f44336;border-radius:6px;padding:6px 16px;color:#f44336;cursor:pointer;font-family:'Georgia',serif;font-size:0.7em;\">🏃 Бежать</button>";
-        h += "<div id=\"combat-log\" style=\"text-align:center;color:#aaa;font-size:0.75em;margin-top:8px;min-height:18px;\"></div></div>";
-        this._openScreen('⚔️ Бой', 'dungeon_fight', h);
+        var ehp = b.enemyMaxHp > 0 ? Math.round((b.enemyHp / b.enemyMaxHp) * 100) : 0;
+        var php = b.playerMaxHp > 0 ? Math.round((b.playerHp / b.playerMaxHp) * 100) : 0;
+        var carp = b.enemyMaxArmor > 0 ? Math.round((b.enemyArmor / b.enemyMaxArmor) * 100) : 0;
+
+        var html = '<div style="display:flex;flex-direction:column;height:100%;">';
+
+        // === ВЕРХ: КАРТОЧКА ВРАГА ===
+        html += '<div style="text-align:center;flex-shrink:0;">';
+        html += '<div style="position:relative;display:inline-block;">';
+        html += '<img src="assets/interface/frame_of_beasts.png" style="width:180px;height:180px;position:absolute;top:-10px;left:-10px;z-index:1;pointer-events:none;">';
+        html += '<img src="assets/all_beasts/' + (b.enemyImage || 'image (1).png') + '" style="width:160px;height:160px;object-fit:contain;position:relative;z-index:0;border-radius:12px;" onerror="this.src=\'assets/interface/labyrinth_of_icons.png\'">';
+        html += '</div>';
+        html += '<div style="color:#f44336;font-weight:bold;font-size:1.1em;margin-top:4px;">' + (b.enemyName || 'Монстр') + (b.isBoss ? ' 👑' : '') + '</div>';
+        // HP врага
+        html += '<div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:4px;">';
+        html += '<img src="assets/interface/filling_the_beasts\'_health_bar.jpeg" style="width:120px;height:14px;object-fit:contain;">';
+        html += '<div style="background:rgba(0,0,0,0.5);border-radius:6px;height:12px;width:120px;overflow:hidden;position:relative;">';
+        html += '<div style="background:#f44336;height:100%;width:' + ehp + '%;transition:0.3s;"></div>';
+        html += '<span style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#fff;font-size:0.55em;text-shadow:0 0 4px #000;">' + b.enemyHp + '/' + b.enemyMaxHp + '</span></div></div>';
+        // Броня врага
+        if (b.enemyMaxArmor > 0) {
+            html += '<div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:2px;">';
+            html += '<span style="color:#2196f3;font-size:0.7em;">🛡️</span>';
+            html += '<div style="background:rgba(0,0,0,0.5);border-radius:6px;height:10px;width:120px;overflow:hidden;"><div style="background:#2196f3;height:100%;width:' + carp + '%;transition:0.3s;"></div></div>';
+            html += '<span style="color:#2196f3;font-size:0.6em;">' + b.enemyArmor + '/' + b.enemyMaxArmor + '</span></div>';
+        }
+        html += '</div>';
+
+        // === ЦЕНТР: ЛОГ ===
+        html += '<div id="combat-log" style="flex:1;background:rgba(0,0,0,0.4);border-radius:8px;margin:8px 0;padding:8px;overflow-y:auto;color:#aaa;font-size:0.7em;min-height:80px;text-align:left;">';
+        html += '<div style="color:#888;">⚔️ Бой начался!</div></div>';
+
+        // === НИЗ: ПАНЕЛЬ ИГРОКА ===
+        html += '<div style="flex-shrink:0;">';
+        // HP игрока
+        html += '<div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:8px;">';
+        html += '<span style="color:#4caf50;font-size:0.8em;">❤️</span>';
+        html += '<div style="background:rgba(0,0,0,0.5);border-radius:6px;height:14px;width:160px;overflow:hidden;position:relative;">';
+        html += '<div style="background:#4caf50;height:100%;width:' + php + '%;transition:0.3s;"></div>';
+        html += '<span style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#fff;font-size:0.6em;">' + b.playerHp + '/' + b.playerMaxHp + '</span></div></div>';
+
+        // Кнопки навыков (иконки)
+        html += '<div style="display:flex;justify-content:center;gap:8px;flex-wrap:wrap;">';
+        html += '<button onclick="SherwoodUI._combatSkill(\'power_shot\')" style="width:56px;height:56px;background:url(\'assets/skills/skill_critical_shot.gif\') center/contain no-repeat;border:2px solid ' + (cd.power_shot ? '#555' : '#ff5722') + ';border-radius:12px;cursor:pointer;opacity:' + (cd.power_shot ? '0.4' : '1') + ';position:relative;" title="Мощный выстрел">' + (cd.power_shot ? '<span style="position:absolute;bottom:-2px;right:-2px;background:#000;color:#fff;border-radius:50%;width:18px;height:18px;font-size:0.5em;line-height:18px;">' + cd.power_shot + '</span>' : '') + '</button>';
+        html += '<button onclick="SherwoodUI._combatSkill(\'triple_shot\')" style="width:56px;height:56px;background:url(\'assets/skills/triple_shot_skill.png\') center/contain no-repeat;border:2px solid ' + (cd.triple_shot ? '#555' : '#2196f3') + ';border-radius:12px;cursor:pointer;opacity:' + (cd.triple_shot ? '0.4' : '1') + ';position:relative;" title="Тройной выстрел">' + (cd.triple_shot ? '<span style="position:absolute;bottom:-2px;right:-2px;background:#000;color:#fff;border-radius:50%;width:18px;height:18px;font-size:0.5em;line-height:18px;">' + cd.triple_shot + '</span>' : '') + '</button>';
+        html += '<button onclick="SherwoodUI._combatAttack()" style="width:64px;height:64px;background:url(\'assets/interface/normal_hit_button.png\') center/contain no-repeat;border:3px solid #c9a040;border-radius:50%;cursor:pointer;" title="Атака"></button>';
+        html += '<button onclick="SherwoodUI._combatSkill(\'poison_arrow\')" style="width:56px;height:56px;background:url(\'assets/skills/poison_shot_skill.gif\') center/contain no-repeat;border:2px solid ' + (cd.poison_arrow ? '#555' : '#4caf50') + ';border-radius:12px;cursor:pointer;opacity:' + (cd.poison_arrow ? '0.4' : '1') + ';position:relative;" title="Отравленная стрела">' + (cd.poison_arrow ? '<span style="position:absolute;bottom:-2px;right:-2px;background:#000;color:#fff;border-radius:50%;width:18px;height:18px;font-size:0.5em;line-height:18px;">' + cd.poison_arrow + '</span>' : '') + '</button>';
+        html += '<button onclick="SherwoodUI._combatSkill(\'stunning_shot\')" style="width:56px;height:56px;background:url(\'assets/skills/control_skill.png\') center/contain no-repeat;border:2px solid ' + (cd.stunning_shot ? '#555' : '#9c27b0') + ';border-radius:12px;cursor:pointer;opacity:' + (cd.stunning_shot ? '0.4' : '1') + ';position:relative;" title="Оглушающий выстрел">' + (cd.stunning_shot ? '<span style="position:absolute;bottom:-2px;right:-2px;background:#000;color:#fff;border-radius:50%;width:18px;height:18px;font-size:0.5em;line-height:18px;">' + cd.stunning_shot + '</span>' : '') + '</button>';
+        html += '</div>';
+        html += '<div style="text-align:center;margin-top:6px;">';
+        html += '<button onclick="SherwoodUI._combatFlee()" style="background:rgba(244,67,54,0.2);border:1px solid #f44336;border-radius:6px;padding:4px 14px;color:#f44336;cursor:pointer;font-family:\'Georgia\',serif;font-size:0.65em;">🏃 Бежать</button></div>';
+        html += '</div></div>';
+
+        this._openScreen('', 'dungeon_fight', html);
     },
 
     _combatAttack: function() {
@@ -327,29 +361,38 @@ const SherwoodUI = {
         var r = Sherwood.Combat.flee();
         if (r.success) { this._leaveDungeon(); return; }
         var log = document.getElementById('combat-log');
-        if (r.lose) { if (log) log.textContent = '💀 Поражение...'; var self = this; setTimeout(function() { self._leaveDungeon(); }, 1200); return; }
-        if (log) log.textContent = '❌ Не вышло! Враг: -' + r.damage;
+        if (r.lose) { this._addCombatLog('💀 Поражение...', '#f44336'); var self = this; setTimeout(function() { self._leaveDungeon(); }, 1200); return; }
+        this._addCombatLog('❌ Побег не удался! Враг атакует: -' + r.damage, '#ff9800');
         this._showCombatScreen();
     },
 
-    _handleCombat: function(r) {
+    _addCombatLog: function(msg, color) {
         var log = document.getElementById('combat-log');
+        if (log) {
+            log.innerHTML += '<div style="color:' + (color||'#aaa') + ';margin:2px 0;">' + msg + '</div>';
+            log.scrollTop = log.scrollHeight;
+        }
+    },
+
+    _handleCombat: function(r) {
         if (r.win) {
-            if (log) log.textContent = '🏆 Победа! +' + r.exp + 'XP +' + r.gold + '🪙';
+            this._addCombatLog('🏆 Победа! +' + r.exp + 'XP +' + r.gold + '🪙', '#ffd700');
             if (Sherwood.Dungeon && Sherwood.Dungeon.killMonster) Sherwood.Dungeon.killMonster();
             this.updateDisplay();
             var self = this;
-            setTimeout(function() { self._renderDungeon(); }, 1200);
+            setTimeout(function() { self._renderDungeon(); }, 1500);
         } else if (r.lose) {
-            if (log) log.textContent = '💀 Поражение...';
+            this._addCombatLog('💀 Поражение...', '#f44336');
             var self = this;
-            setTimeout(function() { self._leaveDungeon(); }, 1200);
+            setTimeout(function() { self._leaveDungeon(); }, 1500);
         } else {
-            var msg = (r.crit ? '💥 КРИТ! ' : '') + '-' + r.damage;
-            if (r.poison) msg += ' 🧪 Яд!';
-            if (r.stun) msg += ' 💫 Оглушён!';
-            if (r.enemy && r.enemy.damage) msg += ' | Враг: -' + r.enemy.damage;
-            if (log) log.textContent = msg;
+            var msg = (r.crit ? '💥 КРИТ! ' : '⚔️ ') + '-' + r.damage;
+            if (r.armorDmg) msg += ' 🛡️-' + r.armorDmg + ' брони';
+            this._addCombatLog(msg, r.crit ? '#ff6a00' : '#fff');
+            if (r.poison) this._addCombatLog('🧪 Враг отравлен!', '#4caf50');
+            if (r.stun) this._addCombatLog('💫 Враг оглушён!', '#ffd700');
+            if (r.enemy && r.enemy.damage) this._addCombatLog('💢 Враг атакует: -' + r.enemy.damage, '#f44336');
+            if (r.enemy && r.enemyArmorDmg) this._addCombatLog('🛡️ Ваша броня: -' + r.enemyArmorDmg, '#2196f3');
             this.updateDisplay();
             this._showCombatScreen();
         }
