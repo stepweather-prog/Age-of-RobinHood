@@ -206,6 +206,7 @@ Sherwood.init = function() {
     if (typeof Sherwood.Bag !== 'undefined' && Sherwood.Bag.init) Sherwood.Bag.init();
     if (typeof Sherwood.Quests !== 'undefined' && Sherwood.Quests.init) Sherwood.Quests.init();
     if (typeof Sherwood.Tavern !== 'undefined' && Sherwood.Tavern.init) Sherwood.Tavern.init();
+    if (typeof Sherwood.Daily !== 'undefined' && Sherwood.Daily.init) Sherwood.Daily.init();
     if (typeof Sherwood.Portal !== 'undefined' && Sherwood.Portal.init) Sherwood.Portal.init();
     if (typeof Sherwood.Forge !== 'undefined' && Sherwood.Forge.init) Sherwood.Forge.init();
     if (typeof Sherwood.Raid !== 'undefined' && Sherwood.Raid.init) Sherwood.Raid.init();
