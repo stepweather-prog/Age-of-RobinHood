@@ -1,9 +1,5 @@
-/**
- * Sherwood Dungeon — Генерация лабиринта + Туман войны
- */
-
 Sherwood.Dungeon = {
-    TILE: { WALL: 0, EMPTY: 1, MONSTER: 2, CHEST: 3, BOSS: 4, SPAWN: 5, EXIT: 6 },
+    TILE: { WALL: 0, EMPTY: 1, MONSTER: 2, CHEST: 3, BOSS: 4, SPAWN: 5, EXIT: 6, ALTAR: 7, CAULDRON: 8, POTION: 9 },
     _dungeon: null,
     _progress: null,
 
@@ -35,46 +31,39 @@ Sherwood.Dungeon = {
         if (w > 10) w = 10;
         var h = w;
         var grid = [];
-        var fog = [];
         for (var y = 0; y < h; y++) {
             grid[y] = [];
-            fog[y] = [];
             for (var x = 0; x < w; x++) {
-                grid[y][x] = this.TILE.WALL;
-                fog[y][x] = true;
+                grid[y][x] = { type: this.TILE.WALL, open: false, monster: false, chest: false, altar: false, cauldron: false, potion: false, exit: false, boss: false };
             }
         }
-        // Генерация лабиринта (бурильщик)
         var cx = Math.floor(Math.random() * w);
         var cy = Math.floor(Math.random() * h);
-        grid[cy][cx] = this.TILE.SPAWN;
+        grid[cy][cx].type = this.TILE.EMPTY; grid[cy][cx].open = true;
         var emptyCount = 1;
         var target = Math.floor(w * h * 0.6);
         var dirs = [[0,-1],[0,1],[-1,0],[1,0]];
         while (emptyCount < target) {
-            var d = dirs[Math.floor(Math.random() * 4)];
-            var nx = cx + d[0], ny = cy + d[1];
+            var dir = dirs[Math.floor(Math.random() * 4)];
+            var nx = cx + dir[0], ny = cy + dir[1];
             if (nx >= 0 && nx < w && ny >= 0 && ny < h) {
-                if (grid[ny][nx] === this.TILE.WALL) {
-                    grid[ny][nx] = this.TILE.EMPTY;
+                if (grid[ny][nx].type === this.TILE.WALL) {
+                    grid[ny][nx].type = this.TILE.EMPTY;
                     emptyCount++;
                 }
                 cx = nx; cy = ny;
             }
         }
-        // Спавн
         var spawnX = Math.floor(Math.random() * w);
         var spawnY = Math.floor(Math.random() * h);
-        while (grid[spawnY][spawnX] !== this.TILE.EMPTY) {
-            spawnX = Math.floor(Math.random() * w);
-            spawnY = Math.floor(Math.random() * h);
+        while (grid[spawnY][spawnX].type !== this.TILE.EMPTY) {
+            spawnX = Math.floor(Math.random() * w); spawnY = Math.floor(Math.random() * h);
         }
-        grid[spawnY][spawnX] = this.TILE.SPAWN;
-        // Расстановка объектов
+        grid[spawnY][spawnX].type = this.TILE.SPAWN; grid[spawnY][spawnX].open = true;
         var empties = [];
         for (var y = 0; y < h; y++) {
             for (var x = 0; x < w; x++) {
-                if (grid[y][x] === this.TILE.EMPTY && !(x === spawnX && y === spawnY)) {
+                if (grid[y][x].type === this.TILE.EMPTY && !(x === spawnX && y === spawnY)) {
                     empties.push({x:x, y:y});
                 }
             }
@@ -82,37 +71,40 @@ Sherwood.Dungeon = {
         empties.sort(function() { return Math.random() - 0.5; });
         // Босс на 7 этаже
         if (level === 7 && empties.length > 0) {
-            var bossCell = empties.pop();
-            grid[bossCell.y][bossCell.x] = this.TILE.BOSS;
+            var bc = empties.pop();
+            grid[bc.y][bc.x].type = this.TILE.BOSS; grid[bc.y][bc.x].boss = true;
         }
-        // Монстры (~25%)
+        // Монстры
         var monCount = Math.floor(empties.length * 0.25) + 1;
         for (var i = 0; i < monCount; i++) {
             if (empties.length === 0) break;
             var mc = empties.pop();
-            grid[mc.y][mc.x] = this.TILE.MONSTER;
+            grid[mc.y][mc.x].type = this.TILE.MONSTER; grid[mc.y][mc.x].monster = true;
         }
-        // Сундуки (~12%)
-        var chestCount = Math.floor(empties.length * 0.12) + 1;
-        for (var i = 0; i < chestCount; i++) {
-            if (empties.length === 0) break;
+        // Алтарь (1 шт)
+        if (empties.length > 0) {
+            var ac = empties.pop();
+            grid[ac.y][ac.x].type = this.TILE.ALTAR; grid[ac.y][ac.x].altar = true;
+        }
+        // Котёл (1 шт)
+        if (empties.length > 0) {
             var cc = empties.pop();
-            grid[cc.y][cc.x] = this.TILE.CHEST;
+            grid[cc.y][cc.x].type = this.TILE.CAULDRON; grid[cc.y][cc.x].cauldron = true;
         }
-        // Выход — самая дальняя от спавна
+        // Банки лечения (5 шт)
+        var potionCount = Math.min(5, empties.length);
+        for (var i = 0; i < potionCount; i++) {
+            if (empties.length === 0) break;
+            var pc = empties.pop();
+            grid[pc.y][pc.x].type = this.TILE.POTION; grid[pc.y][pc.x].potion = true;
+        }
+        // Выход
         var bestDist = -1, exitX = spawnX, exitY = spawnY;
         for (var i = 0; i < empties.length; i++) {
             var dist = Math.abs(empties[i].x - spawnX) + Math.abs(empties[i].y - spawnY);
             if (dist > bestDist) { bestDist = dist; exitX = empties[i].x; exitY = empties[i].y; }
         }
-        if (bestDist >= 0) grid[exitY][exitX] = this.TILE.EXIT;
-        // Туман
-        fog[spawnY][spawnX] = false;
-        var adj = [[0,-1],[0,1],[-1,0],[1,0]];
-        for (var i = 0; i < 4; i++) {
-            var ax = spawnX + adj[i][0], ay = spawnY + adj[i][1];
-            if (ax >= 0 && ax < w && ay >= 0 && ay < h) fog[ay][ax] = false;
-        }
+        if (bestDist >= 0) { grid[exitY][exitX].type = this.TILE.EXIT; grid[exitY][exitX].exit = true; }
         // Монстры для подземки
         var monsters = {
             forest: { easy: ['image (1).png','image (3).png','image (74).png'], medium: ['image (9).png','image (29).png','image (75).png'], boss: 'image (15).png' },
@@ -125,7 +117,7 @@ Sherwood.Dungeon = {
 
         this._dungeon = {
             id: dungeonId, level: level, size: w,
-            grid: grid, fog: fog,
+            grid: grid,
             px: spawnX, py: spawnY,
             movesLeft: 10 + level * 2,
             monstersKilled: 0, totalMonsters: monCount,
@@ -143,29 +135,22 @@ Sherwood.Dungeon = {
         if (!d || d.movesLeft <= 0) return { ok: false, reason: 'Нет ходов' };
         var nx = d.px + dx, ny = d.py + dy;
         if (nx < 0 || nx >= d.size || ny < 0 || ny >= d.size) return { ok: false, reason: 'Стена' };
-        if (d.grid[ny][nx] === this.TILE.WALL) return { ok: false, reason: 'Стена' };
+        if (d.grid[ny][nx].type === this.TILE.WALL) return { ok: false, reason: 'Стена' };
         d.px = nx; d.py = ny;
         d.movesLeft--;
-        // Туман
-        d.fog[ny][nx] = false;
         d.grid[ny][nx].open = true;
-        var adj = [[0,-1],[0,1],[-1,0],[1,0]];
-        for (var i = 0; i < 4; i++) {
-            var ax = nx + adj[i][0], ay = ny + adj[i][1];
-            if (ax >= 0 && ax < d.size && ay >= 0 && ay < d.size) d.fog[ay][ax] = false;
-        }
         var tile = d.grid[ny][nx];
-        if (tile === this.TILE.MONSTER) {
-            d.grid[ny][nx] = this.TILE.EMPTY;
+        if (tile.type === this.TILE.MONSTER) {
+            tile.type = this.TILE.EMPTY; tile.monster = false;
             var mid = d.monsterPool[Math.floor(Math.random() * d.monsterPool.length)];
             return { ok: true, type: 'battle', monsterId: mid, boss: false };
         }
-        if (tile === this.TILE.BOSS) {
-            d.grid[ny][nx] = this.TILE.EMPTY;
+        if (tile.type === this.TILE.BOSS) {
+            tile.type = this.TILE.EMPTY; tile.boss = false;
             return { ok: true, type: 'battle', monsterId: d.bossImg, boss: true };
         }
-        if (tile === this.TILE.CHEST) {
-            d.grid[ny][nx] = this.TILE.EMPTY;
+        if (tile.type === this.TILE.CHEST) {
+            tile.type = this.TILE.EMPTY; tile.chest = false;
             d.chestsOpened++;
             var g = 25 + Math.floor(Math.random() * 80);
             var s = 100 + Math.floor(Math.random() * 400);
@@ -173,7 +158,19 @@ Sherwood.Dungeon = {
             Sherwood.addResource('silver', s);
             return { ok: true, type: 'chest', gold: g, silver: s };
         }
-        if (tile === this.TILE.EXIT) {
+        if (tile.type === this.TILE.ALTAR) {
+            tile.type = this.TILE.EMPTY; tile.altar = false;
+            return { ok: true, type: 'altar' };
+        }
+        if (tile.type === this.TILE.CAULDRON) {
+            tile.type = this.TILE.EMPTY; tile.cauldron = false;
+            return { ok: true, type: 'cauldron' };
+        }
+        if (tile.type === this.TILE.POTION) {
+            tile.type = this.TILE.EMPTY; tile.potion = false;
+            return { ok: true, type: 'potion' };
+        }
+        if (tile.type === this.TILE.EXIT) {
             return { ok: true, type: 'exit' };
         }
         return { ok: true, type: 'move' };
