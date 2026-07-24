@@ -139,14 +139,16 @@ const SherwoodUI = {
 
     _showNotification: function(msg) { var log = document.getElementById('dungeon-log'); if (log) { log.textContent = msg; log.style.color = '#f44336'; setTimeout(function() { log.style.color = '#aaa'; }, 2000); } },
 
-    _renderDungeon: function() {
+        _renderDungeon: function() {
         var d = Sherwood.Dungeon.getDungeon();
         if (!d) { this.showDungeon(); return; }
         var dungeons = Sherwood.Dungeon.getAvailable();
         var dd = dungeons[d.id] || { bg: this._bg.dungeon_forest, tiles: 'dungeon1', ext: '.jpeg' };
         this.container.style.background = "url('" + dd.bg + "') center/cover no-repeat";
         this._mainElements.forEach(function(sel) { document.querySelectorAll(sel).forEach(function(el) { el.style.display = 'none'; }); });
-        var size = d.size, cs = Math.min(50, Math.floor((this.container.clientWidth - 16) / size));
+        var size = d.size;
+        // Квадратики почти во весь экран
+        var cs = Math.min(58, Math.floor((this.container.clientWidth - 8) / size));
         var floorBg = "assets/dungeon_tiles/" + dd.tiles + "/" + dd.tiles + "tiles.png";
         var tp = "assets/dungeon_tiles/" + dd.tiles + "/tiles", te = dd.ext;
         if (dd.tiles === 'dungeon2') tp = "assets/dungeon_tiles/dungeon2/tiles2.";
@@ -163,46 +165,52 @@ const SherwoodUI = {
         var ai = altarIcons[d.id] || altarIcons['forest'];
         var cai = cauldronIcons[d.id] || cauldronIcons['forest'];
         var compi = completeIcons[d.id] || completeIcons['forest'];
+        var potionIcon = d.id === 'cave' ? 'assets/interface/resource_high_level_health_potion.png' : 'assets/interface/resource_life_potion.png';
         var rowVariants = [];
         for (var r = 0; r < size; r++) { rowVariants.push(Math.random() < 0.5 ? ' scaleX(-1)' : (Math.random() < 0.5 ? ' scaleY(-1)' : 'none')); }
         var gridW = cs * size;
         var html = '<div style="position:relative;width:' + gridW + 'px;height:' + gridW + 'px;margin:0 auto;">';
+        // Фон открытых клеток — полоса для каждого ряда
         for (var y = 0; y < size; y++) {
             for (var x = 0; x < size; x++) {
                 var cell = d.grid[y][x];
-                if (cell.open) html += '<div style="position:absolute;left:' + (x*cs) + 'px;top:' + (y*cs) + 'px;width:' + cs + 'px;height:' + cs + 'px;background-image:url(\'' + floorBg + '\');background-size:cover;background-position:center;transform:' + rowVariants[y] + ';z-index:0;"></div>';
+                if (cell.open) {
+                    html += '<div style="position:absolute;left:' + (x * cs) + 'px;top:' + (y * cs) + 'px;width:' + cs + 'px;height:' + cs + 'px;background-image:url(\'' + floorBg + '\');background-size:cover;background-position:center;transform:' + rowVariants[y] + ';z-index:0;"></div>';
+                }
             }
         }
+        // Сетка клеток
         html += '<div style="position:relative;z-index:1;">';
         for (var y = 0; y < size; y++) {
             html += '<div style="display:flex;gap:0;margin:0;">';
             for (var x = 0; x < size; x++) {
                 var cell = d.grid[y][x], isPlayer = (d.px === x && d.py === y);
-                var bg = '', border = 'rgba(255,255,255,0.08)', content = '', cursor = '', onclick = '';
+                var bg = '', border = 'rgba(255,255,255,0.06)', content = '', cursor = '', onclick = '';
                 if (cell.open) {
                     bg = 'transparent'; border = 'rgba(255,255,255,0.04)';
                     if (cell.monster) { content = '<img src="assets/all_beasts/' + (cell.monsterId || 'image (1).png') + '" style="width:90%;height:90%;object-fit:contain;" onerror="this.style.display=\'none\'">'; border = cell.boss ? '#ff6a00' : '#f44336'; }
                     else if (cell.chest) { content = '<img src="' + (cell.looted ? ci.open : ci.closed) + '" style="width:80%;height:80%;object-fit:contain;">'; border = '#ffc107'; }
                     else if (cell.altar) { content = '<img src="' + ai + '" style="width:80%;height:80%;object-fit:contain;">'; border = '#9c27b0'; }
                     else if (cell.cauldron) { content = '<img src="' + cai + '" style="width:80%;height:80%;object-fit:contain;">'; border = '#4caf50'; }
+                    else if (cell.potion) { content = '<img src="' + potionIcon + '" style="width:70%;height:70%;object-fit:contain;">'; border = '#4caf50'; }
                     else if (cell.exit) { content = '<img src="' + compi + '" style="width:80%;height:80%;object-fit:contain;">'; border = '#4caf50'; }
-                    var adj = Math.abs(x-d.px)+Math.abs(y-d.py)===1;
+                    var adj = Math.abs(x - d.px) + Math.abs(y - d.py) === 1;
                     if (adj && !isPlayer && !cell.monster) { cursor = 'cursor:pointer;'; onclick = 'onclick="SherwoodUI._dungeonMove(' + x + ',' + y + ')"'; border = '#4caf50'; }
                 } else {
-                    var tn = 1 + ((x*7+y*3)%14);
+                    var tn = 1 + ((x * 7 + y * 3) % 14);
                     bg = "url('" + tp + tn + te + "')";
-                    var adj = Math.abs(x-d.px)+Math.abs(y-d.py)===1;
+                    var adj = Math.abs(x - d.px) + Math.abs(y - d.py) === 1;
                     if (adj) { cursor = 'cursor:pointer;'; onclick = 'onclick="SherwoodUI._dungeonMove(' + x + ',' + y + ')"'; border = '#4caf50'; }
                 }
                 if (isPlayer) { content = '<img src="assets/hero_skins/skin_1_basic.png" style="width:80%;height:80%;object-fit:contain;">'; border = '#ffd700'; bg = 'transparent'; }
-                html += '<div ' + onclick + ' style="width:' + cs + 'px;height:' + cs + 'px;' + (bg==='transparent'?'':'background-image:'+bg+';background-size:cover;background-position:center;') + 'border:1px solid ' + border + ';display:flex;align-items:center;justify-content:center;font-size:' + (cs*0.35) + 'px;' + cursor + '">' + content + '</div>';
+                html += '<div ' + onclick + ' style="width:' + cs + 'px;height:' + cs + 'px;' + (bg === 'transparent' ? '' : 'background-image:' + bg + ';background-size:cover;background-position:center;') + 'border:1px solid ' + border + ';display:flex;align-items:center;justify-content:center;font-size:' + (cs * 0.35) + 'px;' + cursor + '">' + content + '</div>';
             }
             html += '</div>';
         }
         html += '</div></div>';
         var hp = Sherwood.getPlayer().stats.hp || 0;
         if (this._screenLayer) {
-            this._screenLayer.innerHTML = '<div style="min-height:100%;background:rgba(0,0,0,0.5);padding:8px;display:flex;flex-direction:column;align-items:center;"><div style="width:100%;max-width:' + (gridW+20) + 'px;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;"><button onclick="SherwoodUI._leaveDungeon()" style="background:transparent;border:none;cursor:pointer;padding:0;width:40px;height:40px;"><img src="assets/all_buttons/back.png" style="width:100%;height:100%;object-fit:contain;"></button><div style="color:#70a0e0;font-weight:bold;font-size:0.85em;">' + (d.id||'') + ' Ур.' + (d.level||1) + '</div><div style="color:#4caf50;font-size:0.85em;">❤️' + hp + '</div></div><div style="background:rgba(0,0,0,0.5);border-radius:6px;padding:4px;margin-bottom:6px;"><div style="display:flex;justify-content:space-around;font-size:10px;color:#aaa;"><span>👹 ' + (d.monstersKilled||0) + '/' + (d.totalMonsters||0) + '</span><span>📦 ' + (d.chestsOpened||0) + '</span><span>🚶 ' + (d.steps||0) + '</span></div></div>' + html + '<div id="dungeon-log" style="text-align:center;font-size:11px;color:#aaa;min-height:18px;margin-top:6px;background:rgba(0,0,0,0.6);border-radius:6px;padding:4px;"></div></div></div>';
+            this._screenLayer.innerHTML = '<div style="min-height:100%;background:rgba(0,0,0,0.4);padding:4px;display:flex;flex-direction:column;align-items:center;"><div style="width:100%;max-width:' + (gridW + 10) + 'px;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;"><button onclick="SherwoodUI._leaveDungeon()" style="background:transparent;border:none;cursor:pointer;padding:0;width:36px;height:36px;"><img src="assets/all_buttons/back.png" style="width:100%;height:100%;object-fit:contain;"></button><div style="color:#70a0e0;font-weight:bold;font-size:0.8em;">' + (d.id || '') + ' Ур.' + (d.level || 1) + '</div><div style="color:#4caf50;font-size:0.8em;">❤️' + hp + '</div></div><div style="background:rgba(0,0,0,0.5);border-radius:6px;padding:3px;margin-bottom:4px;"><div style="display:flex;justify-content:space-around;font-size:9px;color:#aaa;"><span>👹 ' + (d.monstersKilled || 0) + '/' + (d.totalMonsters || 0) + '</span><span>📦 ' + (d.chestsOpened || 0) + '</span><span>🚶 ' + (d.steps || 0) + '</span></div></div>' + html + '<div id="dungeon-log" style="text-align:center;font-size:10px;color:#aaa;min-height:16px;margin-top:4px;background:rgba(0,0,0,0.6);border-radius:6px;padding:3px;"></div></div></div>';
             this._screenLayer.style.display = 'block';
         }
     },
@@ -213,12 +221,12 @@ const SherwoodUI = {
         if (!r || !r.ok) return;
         if (r.type === 'battle') { Sherwood.Combat.start(r.monsterId, r.boss, 'dungeon'); this._showCombatScreen(); return; }
         if (r.type === 'chest') { this._playSound('chest_open'); this.updateDisplay(); }
-        if (r.type === 'altar') { this._playSound('altar'); var p = Sherwood.getPlayer(); p.stats.hp = Math.min(p.stats.maxHp, p.stats.hp + Math.floor(p.stats.maxHp * 0.2)); this.updateDisplay(); }
-        if (r.type === 'cauldron') { this._playSound('bottle_health'); var p = Sherwood.getPlayer(); p.stats.hp = Math.min(p.stats.maxHp, p.stats.hp + Math.floor(p.stats.maxHp * 0.15)); this.updateDisplay(); }
-        if (r.type === 'exit') { var reward = Sherwood.Dungeon.complete(); this.updateDisplay(); this._playSound('victory'); var self = this; setTimeout(function() { self.showDungeon(); }, 1500); return; }
+        if (r.type === 'altar') { this._playSound('altar'); var p = Sherwood.getPlayer(); p.stats.hp = Math.min(p.stats.maxHp, p.stats.hp + Math.floor(p.stats.maxHp * 0.3)); this.updateDisplay(); this._showDialog('🙏 Алтарь восстановил здоровье!', '#9c27b0'); }
+        if (r.type === 'cauldron') { this._playSound('bottle_health'); var p = Sherwood.getPlayer(); p.stats.hp = Math.min(p.stats.maxHp, p.stats.hp + Math.floor(p.stats.maxHp * 0.2)); this.updateDisplay(); this._showDialog('🧪 Котёл восстановил здоровье!', '#4caf50'); }
+        if (r.type === 'potion') { this._playSound('bottle_health'); var p = Sherwood.getPlayer(); var heal = d.id === 'cave' ? Math.floor(p.stats.maxHp * 0.4) : Math.floor(p.stats.maxHp * 0.2); p.stats.hp = Math.min(p.stats.maxHp, p.stats.hp + heal); this.updateDisplay(); this._showDialog('🧪 +' + heal + ' HP!', '#4caf50'); }
+        if (r.type === 'exit') { this._stopBattleMusic(); var reward = Sherwood.Dungeon.complete(); this.updateDisplay(); this._playSound('victory'); var self = this; setTimeout(function() { self.showDungeon(); }, 1500); return; }
         this._renderDungeon(); this.updateDisplay();
     },
-
     _leaveDungeon: function() { if (Sherwood.Dungeon) Sherwood.Dungeon.leave(); this._playMusic('forest_ambient'); this.showDungeon(); },
 
             // ========== БОЙ (ЕДИНЫЙ ДЛЯ ВСЕХ РЕЖИМОВ) ==========
