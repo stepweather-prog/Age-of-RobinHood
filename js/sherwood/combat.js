@@ -20,8 +20,41 @@ Sherwood.Combat = {
             atk = data.attack || 15;
             def = data.defense || 5;
             armor = isBoss ? 40 : 15;
-        } else {
-            name = monsterId || 'Монстр';
+                } else {
+            var monsterNames = {
+                'image (1).png': 'Леший',
+                'image (3).png': 'Проклятый олень',
+                'image (74).png': 'Древесный голем',
+                'image (9).png': 'Рогатый Леший',
+                'image (29).png': 'Олень (Фаза тарана)',
+                'image (75).png': 'Голем (Замах)',
+                'image (18).png': 'Рогатый владыка Леший',
+                'image (15).png': 'Проклятый титан Леший',
+                'image (12).png': 'Болотный утопленник',
+                'image (13).png': 'Кикимора болотная',
+                'image (17).png': 'Болотный упырь',
+                'image (59).png': 'Упырь (Когти)',
+                'image (62).png': 'Утопленник (Мертвец недр)',
+                'image (14).png': 'Костяной гигант',
+                'image (16).png': 'Рогатая кикимора',
+                'image (52).png': 'Кикимора (Выпад)',
+                'image (53).png': 'Кикимора (Крик)',
+                'image (60).png': 'Упырь (Удар)',
+                'image (61).png': 'Упырь (Прыжок)',
+                'image (63).png': 'Скелетный гигант',
+                'image (54).png': 'Кикимора багровой ярости',
+                'image (10).png': 'Трёхглавый пёс преисподней',
+                'image (11).png': 'Заражённый секач',
+                'image (32).png': 'Волк-оборотень',
+                'image (35).png': 'Дьявольский ёж',
+                'image (33).png': 'Оборотень (Ярость)',
+                'image (36).png': 'Ёж (Ярость)',
+                'image (49).png': 'Костяной ликантроп',
+                'image (50).png': 'Ликантроп (Замах)',
+                'image (37).png': 'Кристаллический ёж',
+                'image (34).png': 'Волк-оборотень (Босс)'
+            };
+            name = monsterNames[monsterId] || 'Монстр';
             hp = isBoss ? 400 : 100 + Math.floor(Math.random() * 120);
             atk = isBoss ? 30 : 12 + Math.floor(Math.random() * 15);
             def = isBoss ? 15 : 3 + Math.floor(Math.random() * 10);
