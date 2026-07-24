@@ -71,16 +71,16 @@ const SherwoodUI = {
             });
         }, 300);
     },
-    bindPlayButton: function() {
-        var self = this; var btn = document.getElementById('playBtn');
-        if (btn) btn.addEventListener('click', function() {
-            document.getElementById('loadingScreen').classList.add('hidden');
-            document.getElementById('mainInterface').classList.add('active');
-            try { self._playSound('click'); } catch(e) {}
-            try { self._playMusic('forest_ambient'); } catch(e) {}
-        });
+        bindPlayButton: function() {
+        var self = this;
+        var btn = document.getElementById('playBtn');
+        if (btn) {
+            btn.addEventListener('click', function() {
+                document.getElementById('loadingScreen').classList.add('hidden');
+                document.getElementById('mainInterface').classList.add('active');
+            });
+        }
     },
-
     updateDisplay: function() {
         var p = (typeof Sherwood !== 'undefined' && Sherwood.getPlayer) ? Sherwood.getPlayer() : null; if (!p) return;
         document.getElementById('gold-display').textContent = this._fmt(p.resources ? p.resources.gold || 0 : 0);
