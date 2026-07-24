@@ -221,77 +221,70 @@ const SherwoodUI = {
 
     _leaveDungeon: function() { if (Sherwood.Dungeon) Sherwood.Dungeon.leave(); this._playMusic('forest_ambient'); this.showDungeon(); },
 
-        // ========== БОЙ (ЕДИНЫЙ ДЛЯ ВСЕХ РЕЖИМОВ) ==========
+            // ========== БОЙ (ЕДИНЫЙ ДЛЯ ВСЕХ РЕЖИМОВ) ==========
     _showBattleScreen: function(enemyData, mode, modeTitle, extraInfo, onAttack, onFlee) {
         var e = enemyData, p = Sherwood.getPlayer();
         var ehp = Math.round((e.hp / e.maxHp) * 100), php = Math.round((p.stats.hp / p.stats.maxHp) * 100);
         var h = '<div style="text-align:center;">';
-        // Заголовок: режим + глава/этап
         h += '<div style="color:#e0c080;font-size:0.85em;margin-bottom:4px;">' + modeTitle + '</div>';
+        // Рамка HP бестии
+        h += '<div style="position:relative;width:280px;height:28px;margin:4px auto;">';
+        h += '<img src="assets/interface/life_scale.png" style="width:100%;height:100%;position:absolute;top:0;left:0;z-index:0;">';
+        h += '<div style="position:absolute;top:3px;left:3px;right:3px;bottom:3px;overflow:hidden;z-index:1;">';
+        h += '<div id="enemy-hp-bar" class="hp-burn" style="background:url(\'assets/interface/filling_the_beasts\'_health_bar.jpeg\') center/cover;height:100%;width:' + ehp + '%;transition:width 0.5s cubic-bezier(0.4,0,0.2,1);"></div>';
+        h += '</div><span id="enemy-hp-text" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#fff;font-size:0.7em;z-index:2;text-shadow:0 0 4px #000;font-weight:bold;">' + e.hp + '/' + e.maxHp + '</span></div>';
         // Название бестии
         h += '<div style="color:#f44336;font-weight:bold;font-size:1.1em;">' + e.name + '</div>';
-        // HP бар бестии (life_scale + filling)
-        h += '<div style="position:relative;width:280px;height:24px;margin:6px auto;">';
-        h += '<img src="assets/interface/life_scale.png" style="width:100%;height:100%;position:absolute;top:0;left:0;z-index:0;">';
-        h += '<div style="position:absolute;top:2px;left:2px;right:2px;bottom:2px;background:rgba(0,0,0,0.6);border-radius:4px;overflow:hidden;z-index:1;">';
-        h += '<div id="enemy-hp-bar" class="hp-burn" style="background:url(\'assets/interface/filling_the_beasts\'_health_bar.jpeg\') center/cover;height:100%;width:' + ehp + '%;transition:0.4s;"></div>';
-        h += '</div><span id="enemy-hp-text" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#fff;font-size:0.6em;z-index:2;text-shadow:0 0 4px #000;">' + e.hp + '/' + e.maxHp + '</span></div>';
-        // Карта бестии (крупно)
+        // Карта бестии
         h += '<div style="margin:8px 0;position:relative;display:inline-block;">';
         h += '<img src="assets/interface/frame_of_beasts.png" style="width:280px;height:280px;position:absolute;top:-14px;left:-14px;z-index:0;pointer-events:none;">';
-        h += '<img src="assets/all_beasts/' + e.image + '" id="enemy-card" style="width:250px;height:250px;object-fit:contain;position:relative;z-index:1;border-radius:16px;" onerror="this.style.display=\'none\'">';
+        h += '<img src="assets/all_beasts/' + e.image + '" id="enemy-card" style="width:250px;height:250px;object-fit:contain;position:relative;z-index:1;border-radius:16px;transition:filter 0.15s;" onerror="this.style.display=\'none\'">';
         h += '</div>';
         // Кнопка атаки
         h += '<button onclick="' + onAttack + '" style="margin:6px auto;background:url(\'assets/skills/skill_shot_normal.png\') center/contain no-repeat;width:72px;height:72px;border:3px solid #c9a040;border-radius:50%;cursor:pointer;display:block;"></button>';
-        // HP бар героя (life_scale + filling)
-        h += '<div style="position:relative;width:240px;height:20px;margin:6px auto;">';
+        // Рамка HP героя
+        h += '<div style="position:relative;width:240px;height:22px;margin:6px auto;">';
         h += '<img src="assets/interface/life_scale.png" style="width:100%;height:100%;position:absolute;top:0;left:0;z-index:0;">';
-        h += '<div style="position:absolute;top:2px;left:2px;right:2px;bottom:2px;background:rgba(0,0,0,0.6);border-radius:4px;overflow:hidden;z-index:1;">';
-        h += '<div style="background:url(\'assets/interface/life_interface_asset_horizontal_progress_bar.jpeg\') center/cover;height:100%;width:' + php + '%;transition:0.4s;"></div>';
-        h += '</div><span style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#fff;font-size:0.55em;z-index:2;">❤️ ' + p.stats.hp + '/' + p.stats.maxHp + '</span></div>';
-        // Статы героя + иконка
+        h += '<div style="position:absolute;top:3px;left:3px;right:3px;bottom:3px;overflow:hidden;z-index:1;">';
+        h += '<div style="background:url(\'assets/interface/life_interface_asset_horizontal_progress_bar.jpeg\') center/cover;height:100%;width:' + php + '%;transition:width 0.5s cubic-bezier(0.4,0,0.2,1);"></div>';
+        h += '</div><span style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#fff;font-size:0.6em;z-index:2;text-shadow:0 0 4px #000;">❤️ ' + p.stats.hp + '/' + p.stats.maxHp + '</span></div>';
+        // Статы + иконка героя
         h += '<div style="display:flex;align-items:center;justify-content:center;gap:6px;margin:4px 0;color:#aaa;font-size:0.7em;">';
         h += '<span style="color:#f44336;">⚔️' + p.stats.attack + '</span> <span style="color:#2196f3;">🛡️' + p.stats.defense + '</span> <span style="color:#ff9800;">💨' + p.stats.agility + '</span>';
-        h += '<img src="assets/hero_skins/skin_1_basic.png" style="width:36px;height:36px;border-radius:50%;border:2px solid #c9a040;">';
+        h += '<img src="assets/hero_skins/skin_1_basic.png" style="width:40px;height:40px;border-radius:50%;border:2px solid #c9a040;">';
         h += '</div>';
-        // Диалоговое окно урона
-        h += '<div id="battle-dialog" style="background:rgba(0,0,0,0.7);border:1px solid #555;border-radius:8px;padding:8px;margin:4px 10%;min-height:24px;color:#aaa;font-size:0.7em;text-align:center;"></div>';
-        // Кнопка бегства
-        h += '<button onclick="' + onFlee + '" style="margin-top:4px;background:rgba(244,67,54,0.2);border:1px solid #f44336;border-radius:6px;padding:4px 14px;color:#f44336;cursor:pointer;font-size:0.6em;">🏃 Бежать</button>';
+        // Окно боя (7 строк)
+        h += '<div id="battle-dialog" style="background:rgba(0,0,0,0.75);border:1px solid #555;border-radius:8px;padding:8px;margin:4px 8%;min-height:90px;max-height:90px;overflow-y:auto;color:#aaa;font-size:0.7em;text-align:left;line-height:1.4;"></div>';
         h += '</div>';
         this._openScreen('⚔️ Бой', 'dungeon_fight', h);
     },
 
     _showDialog: function(msg, color) {
         var dlg = document.getElementById('battle-dialog');
-        if (dlg) { dlg.textContent = msg; dlg.style.color = color || '#fff'; }
+        if (dlg) { dlg.innerHTML += '<div style="color:' + (color || '#fff') + ';margin:1px 0;">' + msg + '</div>'; dlg.scrollTop = dlg.scrollHeight; }
+    },
+
+    _flashEnemyCard: function() {
+        var card = document.getElementById('enemy-card'); if (!card) return;
+        card.style.filter = 'brightness(1.5) saturate(2)';
+        setTimeout(function() { card.style.filter = ''; }, 200);
     },
 
     _updateEnemyHP: function(hp, max) {
         var bar = document.getElementById('enemy-hp-bar'), txt = document.getElementById('enemy-hp-text');
-        if (bar) { var pct = max > 0 ? Math.round((hp / max) * 100) : 0; bar.classList.add('hp-burn-flash'); bar.style.width = pct + '%'; setTimeout(function() { bar.classList.remove('hp-burn-flash'); }, 300); }
+        if (bar) { var pct = max > 0 ? Math.round((hp / max) * 100) : 0; bar.style.width = pct + '%'; }
         if (txt) txt.textContent = hp + '/' + max;
-    },
-
-    _playHitAnimation: function() {
-        var card = document.getElementById('enemy-card'); if (!card) return;
-        card.classList.remove('hit-epic-combo'); void card.offsetWidth; card.classList.add('hit-epic-combo');
     },
 
     // ===== ПОДЗЕМКА =====
     _showCombatScreen: function() {
         var b = Sherwood.Combat.getState(); if (!b) { this._renderDungeon(); return; }
-        var self = this;
         this._showBattleScreen(
             { name: b.enemyName, image: b.enemyImage, hp: b.enemyHp, maxHp: b.enemyMaxHp },
-            'dungeon',
-            (b.isBoss ? '👑 БОСС' : '👹 Монстр'),
-            '',
-            'SherwoodUI._combatAttack()',
-            'SherwoodUI._combatFlee()'
+            'dungeon', (b.isBoss ? '👑 БОСС' : '👹 Монстр'), '',
+            'SherwoodUI._combatAttack()', 'SherwoodUI._combatFlee()'
         );
     },
-
     _combatAttack: function() { this._handleCombat(Sherwood.Combat.attack()); },
     _combatFlee: function() { var r = Sherwood.Combat.flee(); if (r.success) { this._leaveDungeon(); return; } if (r.lose) { this._showDialog('💀 Поражение...', '#f44336'); var self = this; setTimeout(function() { self._leaveDungeon(); }, 1200); return; } this._showDialog('❌ Побег не удался! Враг: -' + r.damage, '#ff9800'); this._showCombatScreen(); },
 
@@ -300,23 +293,19 @@ const SherwoodUI = {
         if (r.win) {
             this._showDialog('🏆 Победа! +' + r.exp + 'XP +' + r.gold + '🪙', '#ffd700');
             if (Sherwood.Dungeon && Sherwood.Dungeon.killMonster) Sherwood.Dungeon.killMonster();
-            this.updateDisplay();
-            var self = this; setTimeout(function() { self._renderDungeon(); }, 1500);
+            this.updateDisplay(); var self = this; setTimeout(function() { self._renderDungeon(); }, 1500);
         } else if (r.lose) {
             this._showDialog('💀 Поражение...', '#f44336');
             var self = this; setTimeout(function() { self._leaveDungeon(); }, 1500);
         } else {
-            this._playHitAnimation(); this._updateEnemyHP(r.enemyHp, r.enemyMaxHp);
-            var msg = (r.crit ? '💥 КРИТ! ' : '⚔️ ') + 'Вы ударили: -' + r.damage;
-            if (r.armorDmg) msg += ' (🛡️-' + r.armorDmg + ')';
-            this._showDialog(msg, r.crit ? '#ff6a00' : '#fff');
+            this._flashEnemyCard(); this._updateEnemyHP(r.enemyHp, r.enemyMaxHp);
+            this._showDialog((r.crit ? '💥 КРИТ! ' : '⚔️ ') + 'Вы нанесли ' + r.damage + ' урона', r.crit ? '#ff6a00' : '#fff');
+            if (r.armorDmg) this._showDialog('🛡️ Снято брони: ' + r.armorDmg, '#2196f3');
             if (r.enemy && r.enemy.damage) {
-                setTimeout(function() {
-                    SherwoodUI._showDialog('💢 ' + (r.enemyName || 'Враг') + ' ударил: -' + r.enemy.damage, '#f44336');
-                }, 600);
+                var self = this;
+                setTimeout(function() { self._showDialog('💢 ' + (r.enemyName || 'Враг') + ' нанёс ' + r.enemy.damage + ' урона', '#f44336'); }, 700);
             }
-            this.updateDisplay();
-            var self = this; setTimeout(function() { self._showCombatScreen(); }, 1000);
+            this.updateDisplay(); var self = this; setTimeout(function() { self._showCombatScreen(); }, 1000);
         }
     },
 
@@ -325,17 +314,12 @@ const SherwoodUI = {
         var b = Sherwood.Quests.getBattle(); if (!b) { this.quest(); return; }
         var e = b.enemy;
         this._playSound('shot');
-        var modeTitle = '📜 Глава ' + b.chapter.id + ' — Этап ' + b.stage + '/' + b.total;
         this._showBattleScreen(
             { name: e.name, image: e.image, hp: e.hp, maxHp: e.maxHp },
-            'quest',
-            modeTitle,
-            '',
-            'SherwoodUI._questAttack()',
-            'SherwoodUI._questFlee()'
+            'quest', '📜 Глава ' + b.chapter.id + ' — Этап ' + b.stage + '/' + b.total, '',
+            'SherwoodUI._questAttack()', 'SherwoodUI._questFlee()'
         );
     },
-
     _questAttack: function() { this._handleQuestResult(Sherwood.Quests.attack()); },
     _questFlee: function() { Sherwood.Quests.flee(); this.quest(); },
 
@@ -345,67 +329,52 @@ const SherwoodUI = {
             this._showDialog('✅ Враг повержен!', '#4caf50'); this.updateDisplay();
             if (r.chapterComplete) {
                 this._showDialog('🎉 Глава пройдена! +' + r.rewards.exp + 'XP +' + r.rewards.gold + '🪙', '#ffd700');
-                this._playSound('victory');
-                var self = this; setTimeout(function() { self.quest(); }, 2000);
-            } else {
-                var self = this; setTimeout(function() { self._showQuestBattle(); }, 1200);
-            }
+                this._playSound('victory'); var self = this; setTimeout(function() { self.quest(); }, 2000);
+            } else { var self = this; setTimeout(function() { self._showQuestBattle(); }, 1200); }
         } else if (r.playerDead) {
             this._showDialog('💀 Поражение...', '#f44336'); this._playSound('defeat');
-            Sherwood.Quests.flee();
-            var self = this; setTimeout(function() { self.quest(); }, 1500);
+            Sherwood.Quests.flee(); var self = this; setTimeout(function() { self.quest(); }, 1500);
         } else {
-            this._playHitAnimation(); this._updateEnemyHP(r.enemyHp, r.enemyMaxHp);
-            var msg = (r.crit ? '💥 КРИТ! ' : '⚔️ ') + 'Вы ударили: -' + r.damage;
-            this._showDialog(msg, r.crit ? '#ff6a00' : '#fff');
-            if (r.enemyDamage) {
-                var self = this;
-                setTimeout(function() { self._showDialog('💢 Враг ударил: -' + r.enemyDamage, '#f44336'); }, 600);
-            }
-            this._playSound('arrow_hit');
-            var self = this; setTimeout(function() { self._showQuestBattle(); }, 1000);
+            this._flashEnemyCard(); this._updateEnemyHP(r.enemyHp, r.enemyMaxHp);
+            this._showDialog((r.crit ? '💥 КРИТ! ' : '⚔️ ') + 'Вы нанесли ' + r.damage + ' урона', r.crit ? '#ff6a00' : '#fff');
+            if (r.enemyDamage) { var self = this; setTimeout(function() { self._showDialog('💢 Враг нанёс ' + r.enemyDamage + ' урона', '#f44336'); }, 700); }
+            this._playSound('arrow_hit'); var self = this; setTimeout(function() { self._showQuestBattle(); }, 1000);
         }
     },
 
     // ===== ТАВЕРНА =====
     _showTavernBattle: function() {
         var active = Sherwood.Tavern.getCurrentQuest(); if (!active) { this.tavern(); return; }
-        var e = active.quest.enemy;
-        var modeTitle = '🍺 ' + active.row.npc + ' — ' + active.quest.name;
+        var e = active.quest.enemy; if (!e.maxHp) e.maxHp = e.hp || 100;
         this._showBattleScreen(
-            { name: e.name, image: e.image, hp: e.hp || 100, maxHp: e.hp || 100 },
-            'tavern',
-            modeTitle,
-            '',
-            'SherwoodUI._tavernBattleAttack()',
-            'SherwoodUI._tavernCancel()'
+            { name: e.name, image: e.image, hp: e.hp || 100, maxHp: e.maxHp },
+            'tavern', '🍺 ' + active.row.npc + ' — ' + active.quest.name, '',
+            'SherwoodUI._tavernBattleAttack()', 'SherwoodUI._tavernCancel()'
         );
     },
-
     _tavernBattleAttack: function() {
         var active = Sherwood.Tavern.getCurrentQuest(); if (!active) { this.tavern(); return; }
         var p = Sherwood.getPlayer(), e = active.quest.enemy;
+        if (!e.maxHp) e.maxHp = e.hp || 100;
         var dmg = Math.max(1, Math.floor((p.stats.attack * p.stats.attack) / (p.stats.attack + (e.def || 5))));
         var crit = Math.random() * 100 < 15; if (crit) dmg = Math.floor(dmg * 1.8);
-        if (!e.maxHp) e.maxHp = e.hp;
         e.hp -= dmg;
         if (e.hp <= 0) {
             var r = Sherwood.Tavern.completeQuest();
             this._showDialog('🏆 Победа! +' + r.reward.exp + 'XP +' + r.reward.gold + '🪙', '#ffd700');
-            this.updateDisplay();
-            var self = this; setTimeout(function() { self.tavern(); }, 1500);
+            this.updateDisplay(); var self = this; setTimeout(function() { self.tavern(); }, 1500);
         } else {
             var edmg = Math.max(1, Math.floor((e.atk * e.atk) / (e.atk + p.stats.defense)));
             p.stats.hp = Math.max(0, p.stats.hp - edmg);
-            this._playHitAnimation(); this._updateEnemyHP(e.hp, e.maxHp);
-            this._showDialog((crit ? '💥 КРИТ! ' : '⚔️ ') + 'Вы ударили: -' + dmg, crit ? '#ff6a00' : '#fff');
+            this._flashEnemyCard(); this._updateEnemyHP(e.hp, e.maxHp);
+            this._showDialog((crit ? '💥 КРИТ! ' : '⚔️ ') + 'Вы нанесли ' + dmg + ' урона', crit ? '#ff6a00' : '#fff');
             if (p.stats.hp <= 0) {
-                setTimeout(function() { SherwoodUI._showDialog('💀 Поражение...', '#f44336'); }, 600);
+                var self = this; setTimeout(function() { self._showDialog('💀 Поражение...', '#f44336'); }, 700);
                 Sherwood.Tavern.failQuest(); p.stats.hp = 1;
-                var self = this; setTimeout(function() { self.tavern(); }, 1500);
+                setTimeout(function() { self.tavern(); }, 1500);
             } else {
                 var self = this;
-                setTimeout(function() { self._showDialog('💢 Враг ударил: -' + edmg, '#f44336'); }, 600);
+                setTimeout(function() { self._showDialog('💢 Враг нанёс ' + edmg + ' урона', '#f44336'); }, 700);
                 setTimeout(function() { self._showTavernBattle(); }, 1200);
             }
         }
